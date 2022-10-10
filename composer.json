@@ -1,0 +1,33 @@
+{
+    "name": "glowieframework/glowie-reactables",
+    "description": "Glowie view components plugin",
+    "license": "MIT",
+    "homepage": "https://glowie.tk",
+    "support": {
+        "issues": "https://github.com/glowieframework/glowie-reactables/issues",
+        "source": "https://github.com/glowieframework/glowie-reactables"
+    },
+    "authors": [
+        {
+            "name": "Gabriel Silva",
+            "email": "dev@glowie.tk",
+            "homepage": "https://glowie.tk"
+        }
+    ],
+    "require": {
+        "glowieframework/glowie-core": "@dev"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../glowie-core"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Glowie\\Reactables\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
