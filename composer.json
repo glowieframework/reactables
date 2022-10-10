@@ -25,7 +25,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Glowie\\Reactables\\": "src/"
+            "Glowie\\Plugins\\Reactables\\": "src/"
         }
     },
     "minimum-stability": "dev",
