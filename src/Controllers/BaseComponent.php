@@ -24,6 +24,12 @@
         protected $component;
 
         /**
+         * Sets if the component is refreshing instead of creating.
+         * @var bool
+         */
+        private $isRefreshing = false;
+
+        /**
          * Initializes the component core.
          */
         final public function initializeComponent(){
@@ -40,29 +46,50 @@
         }
 
         /**
+         * Gets the component data as a JSON string.
+         * @return string Returns the component data.
+         */
+        final public function getComponentData(){
+            return $this->component->toJson();
+        }
+
+        /**
+         * Sets if the component is refreshing instead of creating.
+         * @param bool $option (Option) Set to `true` if the component is refreshing, `false` if creating.
+         */
+        final public function setRefresh(bool $option = true){
+            $this->isRefreshing = $option;
+        }
+
+        /**
          * Renders the component view.
          * @param string $component Component view filename. Must be a **.phtml** file inside **app/views/components** folder, extension is not needed.
          * @param array $params (Optional) Parameters to pass into the view. Should be an associative array with each variable name and value.
          */
         final protected function render(string $component, array $params = []){
-            $params = array_merge($this->component->toArray(), $params);
-            $view = new View('components/' . $component, $params, false);
-            $content = $this->putInitialData($view->getContent(), $params);
+            $this->fillComponentParams($params);
+            $view = new View('components/' . $component, $this->component->toArray(), false);
+
+            if($this->isRefreshing){
+                $content = $view->getContent();
+            }else{
+                $content = $this->putInitialData($view->getContent());
+            }
+
             echo $content;
         }
 
         /**
          * Wraps the component with the initial attributes.
          * @param string $content Component HTML content.
-         * @param array $params Associative array of parameters to parse.
          * @return string Returns the wrapped component HTML.
          */
-        private function putInitialData(string $content, array $params){
+        private function putInitialData(string $content){
             // Get component id
             $id = Util::encryptString(Util::classname($this));
 
             // Parse initial data
-            $json = htmlspecialchars(json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK));
+            $json = htmlspecialchars($this->getComponentData());
 
             // Wraps the content
             $content = "<r-component r-id=\"$id\" r-data=\"$json\">\n$content\n</r-component>";

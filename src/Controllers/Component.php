@@ -2,6 +2,7 @@
     namespace Glowie\Plugins\Reactables\Controllers;
 
     use Glowie\Core\Http\Controller;
+    use Glowie\Core\View\Buffer;
     use Util;
 
     /**
@@ -23,10 +24,11 @@
             $data = $this->request->getJson();
 
             // Instantiate component class
-            $class = 'Glowie\Controllers\Components\\' . Util::pascalCase(Util::decryptString($data->id));
+            $class = '\Glowie\Controllers\Components\\' . Util::pascalCase(Util::decryptString($data->id));
             $class = new $class;
 
             // Initialize component data
+            $class->setRefresh();
             $class->initializeComponent();
             $class->fillComponentParams($data->data);
 
@@ -37,7 +39,15 @@
             }
 
             // Refresh component
+            Buffer::start();
             $class->make();
+            $html = Buffer::get();
+
+            // Return response
+            $this->response->setJson([
+                'html' => $html,
+                'data' => $class->getComponentData()
+            ]);
         }
 
     }

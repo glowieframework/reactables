@@ -1,76 +1,87 @@
-/**
- * Initializes all reactable components.
- */
-function reactables_init() {
-    // Get all components
-    var reactables_components = document.querySelectorAll('r-component');
+class ReactablesComponent {
 
-    reactables_components.forEach(component => {
-        // Parse initial component data
-        component.reactables_data = JSON.parse(component.getAttribute('r-data'));
-        component.reactables_id = component.getAttribute('r-id');
+    constructor(el) {
+        // Parse component
+        this.el = el;
+        this.id = this.el.getAttribute('r-id');
+        this.data = JSON.parse(this.el.getAttribute('r-data'));
 
-        // Setup models
-        reactables_update_models(component);
+        // Remove attributes
+        this.el.removeAttribute('r-data');
+        this.el.removeAttribute('r-id');
 
-        // Setup events
-        reactables_bind_events(component);
-    });
+        // Bind stuff
+        this.bind();
+    }
+
+    bind() {
+        this.bind_models();
+        this.bind_events();
+    }
+
+    bind_models() {
+        // Inputs
+        this.el.querySelectorAll('input[type=text][r-model]').forEach(model => {
+            // Set initial value
+            let value = this.data[model.getAttribute('r-model')];
+            if(value !== undefined) model.value = value;
+
+            // Set binding event
+            model.addEventListener('input', () => {
+                this.data[model.getAttribute('r-model')] = model.value;
+                this.refresh();
+            });
+        });
+
+        // Checkboxes
+        this.el.querySelectorAll('input[type=checkbox][r-model]').forEach(model => {
+            // Set initial value
+            let value = this.data[model.getAttribute('r-model')];
+            if(value !== undefined) model.checked = value;
+
+            // Set binding event
+            model.addEventListener('input', () => {
+                this.data[model.getAttribute('r-model')] = model.checked;
+                this.refresh();
+            });
+        });
+    }
+
+    bind_events() {
+        // Clicks
+        this.el.querySelectorAll('[r-click]').forEach(el => {
+            el.addEventListener('click', () => {
+                this.refresh('method', el.getAttribute('r-click'));
+            });
+        });
+    }
+
+    refresh(type = 'model', extra = null) {
+        $.post('reactables/component', JSON.stringify({
+            id: this.id,
+            type: type,
+            data: this.data,
+            extra: extra
+        }), response => {
+            this.el.innerHTML = response.html;
+            this.data = JSON.parse(response.data);
+            this.bind();
+        });
+    }
 }
 
-function reactables_update_models(component) {
-    // Get all text input component models
-    component.querySelectorAll('input[r-model]').forEach(model => {
-        // Set initial model values
-        let value = component.reactables_data[model.getAttribute('r-model')];
-        if(value !== undefined) model.value = value;
+class Reactables {
+    components = [];
 
-        // Set binding event
-        model.addEventListener('input', () => {
-            component.reactables_data[model.getAttribute('r-model')] = model.value;
-            reactables_request(component, 'model');
+    init() {
+        // Initialize components
+        document.querySelectorAll('r-component').forEach(el => {
+            this.components.push(new ReactablesComponent(el));
         });
-    });
-
-    // Get all checkbox component models
-    component.querySelectorAll('input[type=checkbox][r-model]').forEach(model => {
-        // Set initial model values
-        let value = component.reactables_data[model.getAttribute('r-model')];
-        if(value !== undefined) model.checked = value;
-
-        // Set binding event
-        model.addEventListener('input', () => {
-            component.reactables_data[model.getAttribute('r-model')] = model.checked;
-            reactables_request(component, 'model');
-        });
-    });
-}
-
-function reactables_bind_events(component) {
-    // Get all events
-    component.querySelectorAll('[r-click]').forEach(element => {
-        // Set binding event
-        element.addEventListener('click', () => {
-            reactables_request(component, 'method', element.getAttribute('r-click'));
-        });
-    });
-}
-
-function reactables_request(component, type, extra = null) {
-    $.post('reactables/component', JSON.stringify({
-        id: component.reactables_id,
-        type: type,
-        data: component.reactables_data,
-        extra: extra
-    }), response => {
-        // Parses the refreshed component
-        component.outerHTML = response;
-
-        // Refreshes elements
-        reactables_init();
-    });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    reactables_init();
+    window.reactables = new Reactables();
+    window.reactables.init();
 });

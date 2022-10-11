@@ -28,8 +28,9 @@
             Rails::addRoute('reactables/component', Component::class, 'component', 'post');
 
             // Register the Skeltch directives
-            Skeltch::directive('component\s*\((.+?)\)', '<?php Glowie\Plugins\Reactables\Reactables::renderComponent($1) ?>');
-            Skeltch::directive('reactablesAssets', "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js\"></script><script src=\"<?php echo Util::asset('js/reactables.js'); ?>\"></script>");
+            Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1) ?>');
+            Skeltch::directive('reactablesAssets', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets() ?>');
+            Skeltch::directive('reactablesAssetsNojQuery', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets(false) ?>');
         }
 
         /**
@@ -38,12 +39,23 @@
          * @param array $params (Optional) Associative array of parameters to parse into the component.
          */
         public static function renderComponent(string $component, array $params = []){
-            $class = 'Glowie\Controllers\Components\\' . Util::pascalCase($component);
+            $class = '\Glowie\Controllers\Components\\' . Util::pascalCase($component);
             $class = new $class;
             $class->initializeComponent();
             if(is_callable([$class, 'create'])) $class->create();
             $class->fillComponentParams($params);
             $class->make();
+        }
+
+        /**
+         * Renders the assets scripts in the view.
+         * @param bool $jquery (Optional) Include jQuery script.
+         */
+        public static function renderAssets(bool $jquery = true){
+            $assets = '';
+            if($jquery) $assets .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>' . "\n";
+            $assets .= '<script src="' . Util::asset('js/reactables.js') . '"></script>';
+            echo $assets;
         }
 
         /**
