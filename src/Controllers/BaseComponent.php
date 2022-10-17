@@ -4,6 +4,7 @@
     use Glowie\Core\Http\Controller;
     use Glowie\Core\Element;
     use Glowie\Core\View\View;
+    use Glowie\Core\Http\Session;
     use Util;
 
     /**
@@ -85,17 +86,30 @@
          * @return string Returns the wrapped component HTML.
          */
         private function putInitialData(string $content){
-            // Get component id
+            // Get component id and checksum
             $id = Util::encryptString(Util::classname($this));
+            $checksum = $this->checksum();
 
             // Parse initial data
             $json = htmlspecialchars($this->getComponentData());
 
             // Wraps the content
-            $content = "<r-component r-id=\"$id\" r-data=\"$json\">\n$content\n</r-component>";
+            $content = "<r-component r-id=\"$id\" r-checksum=\"{$checksum}\" r-data=\"$json\">\n$content\n</r-component>";
 
             // Returns the content
             return $content;
+        }
+
+        /**
+         * Returns the session checksum if already exists or creates a new one.
+         * @return string Returns the stored or new checksum for the current session.
+         */
+        private function checksum(){
+            $session = new Session();
+            if($session->has('REACTABLES_CHECKSUM')) return $session->get('REACTABLES_CHECKSUM');
+            $token = Util::randomToken();
+            $session->set('REACTABLES_CHECKSUM', $token);
+            return $token;
         }
 
         /**

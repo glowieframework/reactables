@@ -35,7 +35,7 @@
             // Check method call
             if($data->type == 'method' && !empty($data->extra)){
                 $method = $data->extra;
-                $class->{$method}();
+                eval('$class->' . $method . ';');
             }
 
             // Refresh component
@@ -45,6 +45,7 @@
 
             // Return response
             $this->response->setJson([
+                'status' => true,
                 'html' => $html,
                 'data' => $class->getComponentData()
             ]);

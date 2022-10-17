@@ -7,6 +7,7 @@
     use Glowie\Core\Exception\ConsoleException;
     use Glowie\Core\Exception\FileException;
     use Glowie\Plugins\Reactables\Controllers\Component;
+    use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
     use Util;
 
     class Reactables extends Plugin{
@@ -25,7 +26,7 @@
          */
         public function register(){
             // Register the AJAX route
-            Rails::addRoute('reactables/component', Component::class, 'component', 'post');
+            Rails::addProtectedRoute('reactables/component', ValidateChecksum::class, Component::class, 'component', 'post');
 
             // Register the Skeltch directives
             Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1) ?>');
