@@ -13,30 +13,32 @@ class ReactablesComponent {
         this.el.removeAttribute('r-checksum');
 
         // Bind stuff
-        this.bind();
+        this.bind(true);
     }
 
-    bind() {
-        this.bind_models();
-        this.bind_events();
+    bind(listen = false) {
+        this.bind_models(listen);
+        this.bind_events(listen);
     }
 
-    bind_models() {
+    bind_models(listen = false) {
         // Inputs
         this.el.querySelectorAll('input[type=text][r-model]').forEach(model => {
             // Set initial value
             let name = model.getAttribute('r-model');
             let value = this.data[name];
+            let lazy = model.hasAttribute('r-lazy');
             if(value !== undefined) model.value = value;
 
             // Set binding event
-            model.addEventListener('input', () => {
+            if(listen) model.addEventListener('input', () => {
                 this.data[name] = model.value;
-                this.refresh();
+                if(!lazy) this.refresh();
             });
 
             // Remove attributes
             model.removeAttribute('r-model');
+            model.removeAttribute('r-lazy');
         });
 
         // Checkboxes
@@ -44,27 +46,29 @@ class ReactablesComponent {
             // Set initial value
             let name = model.getAttribute('r-model');
             let value = this.data[name];
+            let lazy = model.hasAttribute('r-lazy');
             if(value !== undefined) model.checked = value;
 
             // Set binding event
-            model.addEventListener('input', () => {
+            if(listen) model.addEventListener('input', () => {
                 this.data[name] = model.checked;
-                this.refresh();
+                if(!lazy) this.refresh();
             });
 
             // Remove attributes
             model.removeAttribute('r-model');
+            model.removeAttribute('r-lazy');
         });
     }
 
-    bind_events() {
+    bind_events(listen = false) {
         // Clicks
         this.el.querySelectorAll('[r-click]').forEach(el => {
             // Get value
             let value = el.getAttribute('r-click');
 
             // Set binding event
-            el.addEventListener('click', () => {
+            if(listen) el.addEventListener('click', () => {
                 this.refresh('method', value);
             });
 
@@ -82,8 +86,8 @@ class ReactablesComponent {
             extra: extra
         }), response => {
             if(response.status === true) {
-                this.el.innerHTML = response.html;
                 this.data = JSON.parse(response.data);
+                morphdom(this.el.children[0], response.html);
                 this.bind();
             } else {
                 console.log(response.error);

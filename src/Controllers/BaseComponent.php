@@ -51,7 +51,7 @@
          * @return string Returns the component data.
          */
         final public function getComponentData(){
-            return $this->component->toJson();
+            return $this->component->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK | JSON_FORCE_OBJECT);
         }
 
         /**
