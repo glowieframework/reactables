@@ -25,12 +25,6 @@
         protected $component;
 
         /**
-         * Sets if the component is refreshing instead of creating.
-         * @var bool
-         */
-        private $isRefreshing = false;
-
-        /**
          * Initializes the component core.
          */
         final public function initializeComponent(){
@@ -47,19 +41,22 @@
         }
 
         /**
-         * Gets the component data as a JSON string.
+         * Gets the component data as a JSON string object.
          * @return string Returns the component data.
          */
         final public function getComponentData(){
-            return $this->component->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK | JSON_FORCE_OBJECT);
+            if(empty($this->component->toArray())) return '{}';
+            return $this->component->toJson(JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
 
         /**
-         * Sets if the component is refreshing instead of creating.
-         * @param bool $option (Option) Set to `true` if the component is refreshing, `false` if creating.
+         * Sets magically the value of a property.
+         * @param string $call Method call.
          */
-        final public function setRefresh(bool $option = true){
-            $this->isRefreshing = $option;
+        final public function magicSet(string $call){
+            $matches = [];
+            if(!preg_match('~\$set\(\'(.+)\', *\'(.+)\'\)~', $call, $matches)) return;
+            if(count($matches) == 3) $this->component->set($matches[1], $matches[2]);
         }
 
         /**
@@ -69,32 +66,26 @@
          */
         final protected function render(string $component, array $params = []){
             $this->fillComponentParams($params);
-            $view = new View('components/' . $component, $this->component->toArray(), false);
-
-            if($this->isRefreshing){
-                $content = $view->getContent();
-            }else{
-                $content = $this->putInitialData($view->getContent());
-            }
-
+            $view = new View('components/' . $component, $this->component->toArray());
+            $content = $this->putData($view->getContent());
             echo $content;
         }
 
         /**
-         * Wraps the component with the initial attributes.
+         * Pumps the component with the data attributes.
          * @param string $content Component HTML content.
-         * @return string Returns the wrapped component HTML.
+         * @return string Returns the pumped component HTML.
          */
-        private function putInitialData(string $content){
+        private function putData(string $content){
             // Get component id and checksum
             $id = Util::encryptString(Util::classname($this));
             $checksum = $this->checksum();
 
-            // Parse initial data
+            // Parse component data
             $json = htmlspecialchars($this->getComponentData());
 
-            // Wraps the content
-            $content = "<r-component r-id=\"$id\" r-checksum=\"{$checksum}\" r-data=\"$json\">\n$content\n</r-component>";
+            // Pumps the content
+            $content = preg_replace('~<([^\s]+([^\s>]+))>~', '<$1 r-id="' . $id . '" r-checksum="' . $checksum . '" r-data="' . $json . '">', $content, 1);
 
             // Returns the content
             return $content;

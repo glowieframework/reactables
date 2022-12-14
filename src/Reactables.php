@@ -17,7 +17,6 @@
          * @var array
          */
         protected $files = [
-            __DIR__ . '/Assets/reactables.js' => 'public/assets/js/reactables.js',
             __DIR__ . '/Commands/CreateComponent.php' => 'commands/CreateComponent.php'
         ];
 
@@ -25,8 +24,9 @@
          * Initializes the plugin.
          */
         public function register(){
-            // Register the AJAX route
+            // Register the AJAX and assets routes
             Rails::addProtectedRoute('reactables/component', ValidateChecksum::class, Component::class, 'component', 'post');
+            Rails::addRoute('reactables/assets', Component::class, 'assets');
 
             // Register the Skeltch directives
             Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1) ?>');
@@ -53,10 +53,7 @@
          * @param bool $jquery (Optional) Include jQuery script.
          */
         public static function renderAssets(bool $jquery = true){
-            $assets = '';
-            if($jquery) $assets .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>' . "\n";
-            $assets .= '<script src="https://cdn.jsdelivr.net/npm/morphdom@2.6.1/dist/morphdom-umd.js"></script>' . "\n";
-            $assets .= '<script src="' . Util::asset('js/reactables.js') . '"></script>';
+            if($jquery) $assets = '<script src="' . Util::baseUrl('reactables/assets') . '"></script>';
             echo $assets;
         }
 
