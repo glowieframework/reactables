@@ -3,8 +3,8 @@
 
     use Glowie\Core\Http\Controller;
     use Glowie\Core\View\Buffer;
+    use Glowie\Core\Exception\FileException;
     use Util;
-    use Throwable;
 
     /**
      * Reactables core controller.
@@ -26,7 +26,10 @@
             if(empty($data->id)) return;
 
             // Instantiate component class
-            $class = '\Glowie\Controllers\Components\\' . Util::pascalCase(Util::decryptString($data->id));
+            $name = Util::pascalCase(Util::decryptString($data->id) ?? '');
+            if(empty($name)) throw new FileException('[Reactables] Invalid component ID');
+            $class = '\Glowie\Controllers\Components\\' . $name;
+            if(!class_exists($class)) throw new FileException('[Reactables] Component "' . $name . '" does not exist');
             $class = new $class;
 
             // Initialize component data
@@ -65,7 +68,7 @@
         public function assets(){
             $scripts = file_get_contents(__DIR__ . '/../Assets/jquery.min.js')
                     . file_get_contents(__DIR__ . '/../Assets/morphdom-umd.min.js')
-                    . file_get_contents(__DIR__ . '/../Assets/reactables.js');
+                    . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');
             $this->response->setBody($scripts);
         }
 

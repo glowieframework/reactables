@@ -31,7 +31,6 @@
             // Register the Skeltch directives
             Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1) ?>');
             Skeltch::directive('reactablesAssets', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets() ?>');
-            Skeltch::directive('reactablesAssetsNojQuery', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets(false) ?>');
         }
 
         /**
@@ -41,6 +40,7 @@
          */
         public static function renderComponent(string $component, array $params = []){
             $class = '\Glowie\Controllers\Components\\' . Util::pascalCase($component);
+            if(!class_exists($class)) throw new FileException('[Reactables] Component "' . $component . '" does not exist');
             $class = new $class;
             $class->initializeComponent();
             if(is_callable([$class, 'create'])) $class->create();

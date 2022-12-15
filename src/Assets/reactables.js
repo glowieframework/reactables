@@ -8,14 +8,53 @@ class ReactablesComponent {
         this.data = JSON.parse(this.el.getAttribute('r-data'));
 
         // Toggle loading elements
-        $('[r-loading]').css('display', 'none');
-        $('[r-ready]').css('display', 'inline-block');
+        this.toggle_loads();
 
         // Remove attributes
         this.remove_attrs();
 
         // Bind stuff
         this.bind(true);
+    }
+
+    toggle_loads(ready = true) {
+        if(ready) {
+            this.el.querySelectorAll('[r-loading]').forEach(el => {
+                let attr = el.getAttribute('r-loading');
+                el.style.display = attr.length ? attr : 'none';
+            });
+
+            this.el.querySelectorAll('[r-ready]').forEach(el => {
+                let attr = el.getAttribute('r-ready');
+                el.style.display = attr.length ? attr : 'inline-block';
+            });
+
+            this.el.querySelectorAll('[r-loading-class]').forEach(el => {
+                el.classList.remove(el.getAttribute('r-loading-class'));
+            });
+
+            this.el.querySelectorAll('[r-ready-class]').forEach(el => {
+                el.classList.add(el.getAttribute('r-ready-class'));
+            });
+        } else {
+            this.el.querySelectorAll('[r-loading]').forEach(el => {
+                let attr = el.getAttribute('r-loading');
+                el.style.display = attr.length ? attr : 'inline-block';
+            });
+
+            this.el.querySelectorAll('[r-ready]').forEach(el => {
+                let attr = el.getAttribute('r-ready');
+                el.style.display = attr.length ? attr : 'none';
+            });
+
+            this.el.querySelectorAll('[r-loading-class]').forEach(el => {
+                el.classList.add(el.getAttribute('r-loading-class'));
+            });
+
+            this.el.querySelectorAll('[r-ready-class]').forEach(el => {
+                el.classList.remove(el.getAttribute('r-ready-class'));
+            });
+        }
     }
 
     remove_attrs() {
@@ -34,29 +73,43 @@ class ReactablesComponent {
         this.el.querySelectorAll('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=search][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
             // Set initial value
             let name = model.getAttribute('r-model');
-            let value = this.data[name];
             let lazy = model.hasAttribute('r-lazy');
+            let debounce = model.getAttribute('r-debounce');
+            let debounceTimeout = null;
+            let value = this.data[name];
             if(value !== undefined) model.value = value;
 
             // Set binding event
             if(listen) model.addEventListener('input', () => {
                 this.data[name] = model.value;
-                if(!lazy) this.refresh();
+                if(!lazy) {
+                    if(debounce) {
+                        if(debounceTimeout) clearTimeout(debounceTimeout);
+                        debounceTimeout = setTimeout(() => {
+                            this.refresh();
+                        }, debounce);
+                    } else {
+                        this.refresh();
+                    }
+                }
             });
 
             // Remove attributes
             model.removeAttribute('r-model');
             model.removeAttribute('r-lazy');
+            model.removeAttribute('r-debounce');
         });
 
-        // Checkboxes
-        this.el.querySelectorAll('input[type=checkbox][r-model]').forEach(model => {
+        // Checkboxes and radios
+        this.el.querySelectorAll('input[type=checkbox][r-model], input[type=radio][r-model]').forEach(model => {
             // Set initial value
             let name = model.getAttribute('r-model');
-            let qualifiedName = name.replace('[]', '');
-            let value = this.data[qualifiedName];
             let lazy = model.hasAttribute('r-lazy');
+            let debounce = model.getAttribute('r-debounce');
+            let debounceTimeout = null;
+            let qualifiedName = name.replace('[]', '');
             let custom = model.getAttribute('r-value');
+            let value = this.data[qualifiedName];
 
             // Array
             if(name.endsWith('[]')) {
@@ -96,12 +149,22 @@ class ReactablesComponent {
                     }
                 }
 
-                if(!lazy) this.refresh();
+                if(!lazy) {
+                    if(debounce) {
+                        if(debounceTimeout) clearTimeout(debounceTimeout);
+                        debounceTimeout = setTimeout(() => {
+                            this.refresh();
+                        }, debounce);
+                    } else {
+                        this.refresh();
+                    }
+                }
             });
 
             // Remove attributes
             model.removeAttribute('r-model');
             model.removeAttribute('r-lazy');
+            model.removeAttribute('r-debounce');
             model.removeAttribute('r-value');
         });
     }
@@ -124,8 +187,7 @@ class ReactablesComponent {
 
     refresh(type = 'model', extra = null) {
         // Toggle loading elements
-        $('[r-loading]').css('display', 'inline-block');
-        $('[r-ready]').css('display', 'none');
+        this.toggle_loads(false);
 
         // Perform request
         $.post('reactables/component', JSON.stringify({
@@ -142,8 +204,7 @@ class ReactablesComponent {
             this.data = JSON.parse(this.el.getAttribute('r-data'));
 
             // Toggle loading elements
-            $('[r-loading]').css('display', 'none');
-            $('[r-ready]').css('display', 'inline-block');
+            this.toggle_loads();
 
             // Remove attributes
             this.remove_attrs();
