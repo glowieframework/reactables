@@ -36,6 +36,14 @@ class ReactablesComponent {
             this.el.querySelectorAll('[r-ready-class]').forEach(el => {
                 el.classList.add(el.getAttribute('r-ready-class'));
             });
+
+            this.el.querySelectorAll('[r-loading-attr]').forEach(el => {
+                el.removeAttribute(el.getAttribute('r-loading-attr'));
+            });
+
+            this.el.querySelectorAll('[r-ready-attr]').forEach(el => {
+                el.setAttribute(el.getAttribute('r-loading-attr'), 'true');
+            });
         } else {
             this.el.querySelectorAll('[r-loading]').forEach(el => {
                 let attr = el.getAttribute('r-loading');
@@ -53,6 +61,14 @@ class ReactablesComponent {
 
             this.el.querySelectorAll('[r-ready-class]').forEach(el => {
                 el.classList.remove(el.getAttribute('r-ready-class'));
+            });
+
+            this.el.querySelectorAll('[r-loading-attr]').forEach(el => {
+                el.setAttribute(el.getAttribute('r-loading-attr'), 'true');
+            });
+
+            this.el.querySelectorAll('[r-ready-attr]').forEach(el => {
+                el.removeAttribute(el.getAttribute('r-loading-attr'));
             });
         }
     }
@@ -174,14 +190,32 @@ class ReactablesComponent {
         this.el.querySelectorAll('[r-click]').forEach(el => {
             // Get value
             let value = el.getAttribute('r-click');
+            let prevent = el.hasAttribute('r-prevent');
 
             // Set binding event
-            if(listen) el.addEventListener('click', () => {
+            if(listen) el.addEventListener('click', event => {
+                if(prevent) event.preventDefault();
                 this.refresh('method', value);
             });
 
             // Remove attribute
             el.removeAttribute('r-click');
+        });
+
+        // Form submit
+        this.el.querySelectorAll('[r-submit]').forEach(el => {
+            // Get value
+            let value = el.getAttribute('r-submit');
+            let prevent = el.hasAttribute('r-prevent');
+
+            // Set binding event
+            if(listen) el.addEventListener('submit', event => {
+                if(prevent) event.preventDefault();
+                this.refresh('method', value);
+            });
+
+            // Remove attribute
+            el.removeAttribute('r-submit');
         });
     }
 

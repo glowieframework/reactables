@@ -41,9 +41,9 @@
                 $method = $data->extra;
 
                 // Check magic actions
-                if(Util::startsWith($method, '$refresh')){
+                if($method == '$refresh()'){
                     // Do nothing, refresh the component only
-                }else if(Util::startsWith($method, '$set')){
+                }else if(Util::startsWith($method, '$set(')){
                     $class->magicSet($method);
                 }else{
                     eval('$class->' . $method . ';');
