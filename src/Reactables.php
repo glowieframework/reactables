@@ -26,7 +26,7 @@
         public function register(){
             // Register the AJAX and assets routes
             Rails::addProtectedRoute('reactables/component', ValidateChecksum::class, Component::class, 'component', 'post');
-            Rails::addRoute('reactables/assets', Component::class, 'assets');
+            Rails::addRoute('reactables/assets.js', Component::class, 'assets');
 
             // Register the Skeltch directives
             Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1) ?>');
@@ -53,7 +53,7 @@
          * @param bool $jquery (Optional) Include jQuery script.
          */
         public static function renderAssets(bool $jquery = true){
-            if($jquery) $assets = '<script src="' . Util::baseUrl('reactables/assets') . '"></script>';
+            if($jquery) $assets = '<script src="' . Util::baseUrl('reactables/assets.js') . '"></script>';
             echo $assets;
         }
 
@@ -87,8 +87,9 @@
             if(!is_writable(Util::location('views/components'))) throw new FileException('Directory "app/views/components" is not writable, please check your chmod settings');
 
             // Creates the view file
+            $template = file_get_contents(__DIR__ . '/Templates/view.phtml');
             $targetFile = Util::location('views/components/' . $viewname . '.phtml');
-            file_put_contents($targetFile, '{# Create your component view here #}');
+            file_put_contents($targetFile, $template);
         }
 
     }
