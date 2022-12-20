@@ -16,8 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Bind stuff
             this.bind(true);
+
+            // Run inits
+            this.run_inits();
         }
 
+        /**
+         * Toggles the loading/ready elements.
+         * @param {boolean} ready Ready state.
+         */
         toggle_loads(ready = true) {
             if(ready) {
                 this.el.querySelectorAll('[r-loading]').forEach(el => {
@@ -74,17 +81,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        /**
+         * Removes the attributes from the component.
+         */
         remove_attrs() {
             this.el.removeAttribute('r-data');
             this.el.removeAttribute('r-id');
             this.el.removeAttribute('r-checksum');
         }
 
+        /**
+         * Binds component hooks.
+         * @param {boolean} listen Create event listeners.
+         */
         bind(listen = false) {
             this.bind_models(listen);
             this.bind_events(listen);
+            this.bind_repeats(listen);
         }
 
+        /**
+         * Binds input models.
+         * @param {boolean} listen Create event listeners.
+         */
         bind_models(listen = false) {
             // Inputs
             this.el.querySelectorAll('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=search][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
@@ -186,6 +205,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        /**
+         * Binds actions to events.
+         * @param {boolean} listen Create event listeners.
+         */
         bind_events(listen = false) {
             // Clicks
             this.el.querySelectorAll('[r-click]').forEach(el => {
@@ -199,8 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.refresh('method', value);
                 });
 
-                // Remove attribute
+                // Remove attributes
                 el.removeAttribute('r-click');
+                el.removeAttribute('r-prevent');
             });
 
             // Form submit
@@ -215,8 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.refresh('method', value);
                 });
 
-                // Remove attribute
+                // Remove attributes
                 el.removeAttribute('r-submit');
+                el.removeAttribute('r-prevent');
             });
 
             // Enter key
@@ -232,8 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.refresh('method', value);
                 });
 
-                // Remove attribute
+                // Remove attributes
                 el.removeAttribute('r-enter');
+                el.removeAttribute('r-prevent');
             });
 
             // Tab key
@@ -249,11 +275,79 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.refresh('method', value);
                 });
 
-                // Remove attribute
+                // Remove attributes
                 el.removeAttribute('r-tab');
+                el.removeAttribute('r-prevent');
             });
         }
 
+        /**
+         * Binds the repeat calls.
+         * @param {boolean} listen Create event listeners.
+         */
+        bind_repeats(listen = false) {
+            this.el.querySelectorAll('[r-repeat][r-interval]').forEach(el => {
+                // Get value
+                let value = el.getAttribute('r-repeat');
+                let interval = el.getAttribute('r-interval');
+                let repeatInterval = null;
+
+                // Set interval
+                if(listen) {
+                    if(repeatInterval) clearInterval(repeatInterval);
+                    repeatInterval = setInterval(() => {
+                        this.refresh('method', value);
+                    }, interval);
+                }
+
+                // Remove attributes
+                el.removeAttribute('r-repeat');
+                el.removeAttribute('r-interval');
+            });
+        }
+
+        /**
+         * Run init functions.
+         */
+        run_inits() {
+            this.el.querySelectorAll('[r-init]').forEach(el => {
+                // Get value
+                let value = el.getAttribute('r-init');
+                let timeout = el.getAttribute('r-timeout');
+                let timeoutInterval = null;
+
+                // Run method
+                if(timeout) {
+                    if(timeoutInterval) clearTimeout(timeoutInterval);
+                    timeoutInterval = setTimeout(() => {
+                        this.refresh('method', value);
+                    }, timeout);
+                } else {
+                    this.refresh('method', value);
+                }
+
+                // Remove attributes
+                el.removeAttribute('r-init');
+                el.removeAttribute('r-timeout');
+            });
+        }
+
+        /**
+         * Remove init attributes.
+         */
+        remove_inits() {
+            this.el.querySelectorAll('[r-init]').forEach(el => {
+                // Remove attributes
+                el.removeAttribute('r-init');
+                el.removeAttribute('r-timeout');
+            });
+        }
+
+        /**
+         * Refreshes the component.
+         * @param {string} type Type of the AJAX call.
+         * @param {*} extra Extra data to pass with the request.
+         */
         refresh(type = 'model', extra = null) {
             // Toggle loading elements
             this.toggle_loads(false);
@@ -280,6 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Bind stuff
                 this.bind();
+
+                // Remove inits
+                this.remove_inits();
             }).fail(error => {
                 this.el.innerHTML = error.responseText;
             });
@@ -291,17 +388,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         init() {
             // Initialize components
-            document.querySelectorAll('[r-id]').forEach(el => {
+            document.querySelectorAll('[r-id][r-checksum][r-data]').forEach(el => {
                 this.components.push(new ReactablesComponent(el));
             });
         }
     }
 
+    // Checks for duplicated assets
     if(window.reactables) {
         console.error('[Reactables] You don\'t neet to included the assets more than once!');
         return;
     }
 
+    // Init Reactables
     window.reactables = new Reactables();
     window.reactables.init();
 });

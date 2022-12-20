@@ -61,3 +61,25 @@ Some predefined methods are:
 
 - `$refresh()` - refreshes the component, without performing any action.
 - `$set('property_name', 'value')` - sets a property value in the component.
+
+### Repeats
+You can automate a component method to run repeatedly in an specific interval of time.
+
+```html
+<div r-repeat="increment()" r-interval="1000"></div>
+```
+
+- `r-repeat` - full method signature to call from the component controller. You can also use parameters in the function.
+- `r-interval` - interval in miliseconds to run the function.
+
+### Defer methods
+You can program a method to run only after the component is rendered.
+
+```html
+<div r-init="ready()" (r-timeout="1000")></div>
+```
+
+> **Note:** Attributes between parentheses are optional.
+
+- `r-init` - full method signature to call from the component controller. You can also use parameters in the function.
+- `r-timeout` - (optional) timeout in miliseconds to wait before running the method.

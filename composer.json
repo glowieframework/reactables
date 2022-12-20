@@ -1,8 +1,8 @@
 {
     "name": "glowieframework/glowie-reactables",
-    "description": "Glowie view components plugin",
+    "description": "Glowie dynamic view components plugin",
     "license": "MIT",
-    "homepage": "https://glowie.tk",
+    "homepage": "https://glowie.tk/reactables",
     "support": {
         "issues": "https://github.com/glowieframework/glowie-reactables/issues",
         "source": "https://github.com/glowieframework/glowie-reactables"
@@ -15,14 +15,8 @@
         }
     ],
     "require": {
-        "glowieframework/glowie-core": "@dev"
+        "glowieframework/glowie-core": "^1.3"
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../glowie-core"
-        }
-    ],
     "autoload": {
         "psr-4": {
             "Glowie\\Plugins\\Reactables\\": "src/"

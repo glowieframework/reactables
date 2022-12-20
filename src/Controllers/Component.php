@@ -3,7 +3,7 @@
 
     use Glowie\Core\Http\Controller;
     use Glowie\Core\View\Buffer;
-    use Glowie\Core\Exception\FileException;
+    use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Util;
 
     /**
@@ -27,9 +27,9 @@
 
             // Instantiate component class
             $name = Util::pascalCase(Util::decryptString($data->id) ?? '');
-            if(empty($name)) throw new FileException('[Reactables] Invalid component ID');
+            if(empty($name)) throw new ComponentException('Invalid component identifier');
             $class = '\Glowie\Controllers\Components\\' . $name;
-            if(!class_exists($class)) throw new FileException('[Reactables] Component "' . $name . '" does not exist');
+            if(!class_exists($class)) throw new ComponentException('Component "' . $name . '" does not exist');
             $class = new $class;
 
             // Initialize component data

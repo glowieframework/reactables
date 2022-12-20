@@ -7,6 +7,7 @@
     use Glowie\Core\Exception\ConsoleException;
     use Glowie\Core\Exception\FileException;
     use Glowie\Plugins\Reactables\Controllers\Component;
+    use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
     use Util;
 
@@ -40,7 +41,7 @@
          */
         public static function renderComponent(string $component, array $params = []){
             $class = '\Glowie\Controllers\Components\\' . Util::pascalCase($component);
-            if(!class_exists($class)) throw new FileException('[Reactables] Component "' . $component . '" does not exist');
+            if(!class_exists($class)) throw new ComponentException('Component "' . $component . '" does not exist');
             $class = new $class;
             $class->initializeComponent();
             if(is_callable([$class, 'create'])) $class->create();
