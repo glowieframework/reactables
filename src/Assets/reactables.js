@@ -28,8 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggle_loads(ready = true) {
             if(ready) {
                 this.el.querySelectorAll('[r-loading]').forEach(el => {
-                    let attr = el.getAttribute('r-loading');
-                    el.style.display = attr.length ? attr : 'none';
+                    el.style.display = 'none';
                 });
 
                 this.el.querySelectorAll('[r-ready]').forEach(el => {
@@ -59,8 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 this.el.querySelectorAll('[r-ready]').forEach(el => {
-                    let attr = el.getAttribute('r-ready');
-                    el.style.display = attr.length ? attr : 'none';
+                    el.style.display = 'none';
                 });
 
                 this.el.querySelectorAll('[r-loading-class]').forEach(el => {
@@ -106,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         bind_models(listen = false) {
             // Inputs
-            this.el.querySelectorAll('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=search][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
+            this.el.querySelectorAll('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
                 // Set initial value
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
@@ -144,13 +142,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 let debounce = model.getAttribute('r-debounce');
                 let debounceTimeout = null;
                 let qualifiedName = name.replace('[]', '');
-                let custom = model.getAttribute('r-value');
+                let custom = model.getAttribute('value');
                 let value = this.data[qualifiedName];
 
                 // Array
                 if(name.endsWith('[]')) {
                     if(Array.isArray(value) && custom) {
-                        if(value.includes(custom)) model.checked = true;
+                        if(value.some(v => v == custom)) model.checked = true;
                     }
                 } else {
                     if(value !== undefined) {
@@ -172,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if(model.checked) {
                                 this.data[qualifiedName].push(custom);
                             } else {
-                                let idx = this.data[qualifiedName].indexOf(custom);
+                                let idx = this.data[qualifiedName].findIndex(v => v == custom);
                                 if(idx !== -1) this.data[qualifiedName].splice(idx, 1);
                             }
                         }
@@ -201,7 +199,52 @@ document.addEventListener('DOMContentLoaded', () => {
                 model.removeAttribute('r-model');
                 model.removeAttribute('r-lazy');
                 model.removeAttribute('r-debounce');
-                model.removeAttribute('r-value');
+            });
+
+            // Selects
+            this.el.querySelectorAll('select[r-model]').forEach(model => {
+                // Set initial value
+                let name = model.getAttribute('r-model');
+                let lazy = model.hasAttribute('r-lazy');
+                let debounce = model.getAttribute('r-debounce');
+                let debounceTimeout = null;
+                let qualifiedName = name.replace('[]', '');
+                let value = this.data[qualifiedName];
+
+                // Array
+                if(name.endsWith('[]')) {
+                    if(Array.isArray(value)) {
+                        model.querySelectorAll('option').forEach(option => {
+                            if(value.some(v => v == option.value)) option.selected = true;
+                        });
+                    }
+                } else {
+                    if(value !== undefined) model.value = value;
+                }
+
+                // Set binding event
+                if(listen) model.addEventListener('input', () => {
+                    // Array
+                    if(name.endsWith('[]')) {
+                        this.data[qualifiedName] = [];
+                        Array.from(model.selectedOptions).forEach(option => {
+                            this.data[qualifiedName].push(option.value);
+                        });
+                    } else {
+                        this.data[qualifiedName] = model.value;
+                    }
+
+                    if(!lazy) {
+                        if(debounce) {
+                            if(debounceTimeout) clearTimeout(debounceTimeout);
+                            debounceTimeout = setTimeout(() => {
+                                this.refresh();
+                            }, debounce);
+                        } else {
+                            this.refresh();
+                        }
+                    }
+                });
             });
         }
 
@@ -241,6 +284,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Remove attributes
                 el.removeAttribute('r-submit');
+                el.removeAttribute('r-prevent');
+            });
+
+            // Focus
+            this.el.querySelectorAll('[r-focus]').forEach(el => {
+                // Get value
+                let value = el.getAttribute('r-focus');
+                let prevent = el.hasAttribute('r-prevent');
+
+                // Set binding event
+                if(listen) el.addEventListener('focus', event => {
+                    if(prevent) event.preventDefault();
+                    this.refresh('method', value);
+                });
+
+                // Remove attributes
+                el.removeAttribute('r-focus');
+                el.removeAttribute('r-prevent');
+            });
+
+            // Blur
+            this.el.querySelectorAll('[r-blur]').forEach(el => {
+                // Get value
+                let value = el.getAttribute('r-blur');
+                let prevent = el.hasAttribute('r-prevent');
+
+                // Set binding event
+                if(listen) el.addEventListener('blur', event => {
+                    if(prevent) event.preventDefault();
+                    this.refresh('method', value);
+                });
+
+                // Remove attributes
+                el.removeAttribute('r-blur');
+                el.removeAttribute('r-prevent');
+            });
+
+            // Mouse hover
+            this.el.querySelectorAll('[r-hover]').forEach(el => {
+                // Get value
+                let value = el.getAttribute('r-hover');
+                let prevent = el.hasAttribute('r-prevent');
+
+                // Set binding event
+                if(listen) el.addEventListener('mouseover', event => {
+                    if(prevent) event.preventDefault();
+                    this.refresh('method', value);
+                });
+
+                // Remove attributes
+                el.removeAttribute('r-hover');
+                el.removeAttribute('r-prevent');
+            });
+
+            // Mouse leave
+            this.el.querySelectorAll('[r-leave]').forEach(el => {
+                // Get value
+                let value = el.getAttribute('r-leave');
+                let prevent = el.hasAttribute('r-prevent');
+
+                // Set binding event
+                if(listen) el.addEventListener('mouseleave', event => {
+                    if(prevent) event.preventDefault();
+                    this.refresh('method', value);
+                });
+
+                // Remove attributes
+                el.removeAttribute('r-leave');
                 el.removeAttribute('r-prevent');
             });
 
@@ -361,16 +472,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 extra: extra
             }), response => {
                 // Morphs the HTML
-                morphdom(this.el, response.html);
+                morphdom(this.el, response.html, {childrenOnly: true});
 
                 // Parses the new data
-                this.data = JSON.parse(this.el.getAttribute('r-data'));
+                this.data = JSON.parse(response.data);
 
                 // Toggle loading elements
                 this.toggle_loads();
-
-                // Remove attributes
-                this.remove_attrs();
 
                 // Bind stuff
                 this.bind();

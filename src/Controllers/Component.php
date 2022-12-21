@@ -45,6 +45,8 @@
                     // Do nothing, refresh the component only
                 }else if(Util::startsWith($method, '$set(')){
                     $class->magicSet($method);
+                }else if(Util::startsWith($method, '$toggle(')){
+                    $class->magicToggle($method);
                 }else{
                     eval('$class->' . $method . ';');
                 }
@@ -67,7 +69,7 @@
          */
         public function assets(){
             $scripts = file_get_contents(__DIR__ . '/../Assets/jquery.min.js')
-                    . file_get_contents(__DIR__ . '/../Assets/morphdom-umd.min.js')
+                    . file_get_contents(__DIR__ . '/../Assets/morphdom.min.js')
                     . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');
             $this->response->setBody($scripts);
         }

@@ -1,43 +1,72 @@
 ### Inputs
-Input elements can be two-way data binded to a model, which represents a property of the component.
+Input elements can be two-way data bound to a model, which represents a property of the component.
 
 ```html
 <input type="text" r-model="name" (r-lazy) (r-debounce="500")>
+
 Hello, {{ $this->name }}!
 ```
 
 > **Note:** Attributes between parentheses are optional.
 
-- `r-model` - binds the input directly to a component property.
+- `r-model` - component property name to bind to the input.
 - `r-lazy` - (optional) update model value only when an action is performed, instead of real-time.
-- `r-debounce` - (optional) update model value after a timeout in miliseconds, instead real-time.
+- `r-debounce` - (optional) update model value after a timeout in miliseconds, instead of real-time.
+
+**Supported input types:** `text`, `checkbox`, `radio`, `date`, `datetime-local`, `email`, `number`, `month`, `password`, `range`, `search`, `tel`, `time`, `url`, `color`, `week` and `textarea`.
 
 ### Checkboxes and radios
-Checkboxes and radio buttons can have a custom value (other than a boolean) binded to their models when checked.
+Checkboxes and radio buttons can have a custom value (rather than a boolean) bound to their models when checked.
 
 ```html
-<input type="checkbox" r-model="accept" (r-value="Yes")>
+<input type="checkbox" r-model="accept" (value="Yes")>
 ```
 
 ```html
-<input type="radio" r-model="rating" (r-value="1")>
-<input type="radio" r-model="rating" (r-value="2")>
-<input type="radio" r-model="rating" (r-value="3")>
+<input type="radio" r-model="rating" (value="1")>
+<input type="radio" r-model="rating" (value="2")>
+<input type="radio" r-model="rating" (value="3")>
 ```
 
 > **Note:** Attributes between parentheses are optional.
 
 #### Multiple choices
-Multiple choices checkboxes should be binded to an array model. The component property will be filled with the selected checkboxes custom values.
+Multiple choices checkboxes should be bound to an array model. The component property will be filled with the selected checkboxes custom values.
 
 ```html
-<input type="checkbox" r-model="services[]" r-value="Service 1">
-<input type="checkbox" r-model="services[]" r-value="Service 2">
-<input type="checkbox" r-model="services[]" r-value="Service 3">
+<input type="checkbox" r-model="services[]" value="Service 1">
+<input type="checkbox" r-model="services[]" value="Service 2">
+<input type="checkbox" r-model="services[]" value="Service 3">
 ```
 
+### Selects
+Select options can have a custom value bounded to their models.
+
+```html
+<select r-model="age">
+    <option (value="18")>18 years old</option>
+    <option (value="30")>30 years old</option>
+    <option (value="60")>60 years old</option>
+</select>
+```
+
+> **Note:** Attributes between parentheses are optional.
+
+#### Multiple choices
+Multiple choices selects should be bound to an array model. The component property will be filled with the selected options (or their custom values, if any).
+
+```html
+<select r-model="vehicles[]" multiple>
+    <option (value="B")>Bike</option>
+    <option (value="C")>Car</option>
+    <option (value="A")>Airplane</option>
+</select>
+```
+
+> **Note:** Attributes between parentheses are optional.
+
 ### Actions
-Some events in elements can be binded to call a method in the component controller.
+Some events in elements can be bound to call a method from the component controller.
 
 ```html
 <button r-click="load()" (r-prevent)>Click me!</button>
@@ -45,21 +74,25 @@ Some events in elements can be binded to call a method in the component controll
 
 > **Note:** Attributes between parentheses are optional.
 
-- `r-click` - full method signature to call from the component controller. You can also use parameters in the function.
+- `r-click` - full method signature to call from the component controller. You can also pass parameters in the function.
 - `r-prevent` - (optional) prevent default browser action of the event.
 
 #### Supported actions
 Current supported actions are:
 
-- `r-click` - button click
-- `r-submit` - form submit
-- `r-enter` - enter key pressed
-- `r-tab` - tab key pressed
+- `r-click` - triggered on element click.
+- `r-submit` - triggered on `<form>` element submit.
+- `r-focus` - triggered when an element gains focus.
+- `r-blur` - triggered when an element loses focus.
+- `r-hover` - triggered when the mouse hovers an element.
+- `r-leave` - triggered when the mouse leaves an element.
+- `r-enter` - triggered when the **Enter** key is pressed in an input element.
+- `r-tab` - triggered when the **Tab** key is pressed in an input element.
 
 #### Magic methods
 Some predefined methods are:
 
-- `$refresh()` - refreshes the component, without performing any action.
+- `$refresh()` - refreshes the component render, without performing any action.
 - `$set('property_name', 'value')` - sets a property value in the component.
 
 ### Repeats
