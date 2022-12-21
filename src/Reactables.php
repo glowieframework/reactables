@@ -30,8 +30,8 @@
             Rails::addRoute('reactables/assets.js', Component::class, 'assets');
 
             // Register the Skeltch directives
-            Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1) ?>');
-            Skeltch::directive('reactablesAssets', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets() ?>');
+            Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1); ?>');
+            Skeltch::directive('reactablesAssets', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets(); ?>');
         }
 
         /**

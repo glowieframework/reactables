@@ -1,6 +1,38 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    /**
+     * Reactables component instance.
+     */
     class ReactablesComponent {
 
+        /**
+         * Component element.
+         * @type {Element}
+         */
+        el;
+
+        /**
+         * Component id.
+         * @type {string}
+         */
+        id;
+
+        /**
+         * Checksum hash.
+         * @type {string}
+         */
+        checksum;
+
+        /**
+         * Component data.
+         * @type {Object}
+         */
+        data;
+
+        /**
+         *
+         * @param {Element} el Component element.
+         */
         constructor(el) {
             // Parse component
             this.el = el;
@@ -457,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         /**
          * Refreshes the component.
          * @param {string} type Type of the AJAX call.
-         * @param {*} extra Extra data to pass with the request.
+         * @param {?string} extra Extra data to pass with the request.
          */
         refresh(type = 'model', extra = null) {
             // Toggle loading elements
@@ -491,14 +523,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * Reactables core class.
+     */
     class Reactables {
+
+        /**
+         * List of components.
+         * @type {ReactablesComponent[]}
+         */
         components = [];
 
+        /**
+         * Initializes the Reactables core.
+         */
         init() {
             // Initialize components
             document.querySelectorAll('[r-id][r-checksum][r-data]').forEach(el => {
                 this.components.push(new ReactablesComponent(el));
             });
+
+            // Dispatch ready event
+            let ready = new Event('reactables-ready');
+            document.dispatchEvent(ready);
+        }
+
+        /**
+         * Finds a component.
+         * @param {string} id Component id to search.
+         */
+        find(id) {
+            return this.components.find(c => c.id == id);
         }
     }
 

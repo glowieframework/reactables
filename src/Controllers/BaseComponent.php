@@ -101,6 +101,9 @@
             // Pumps the content
             $content = preg_replace('~<([^\s]+([^\s>]+))>~', '<$1 r-id="' . $id . '" r-checksum="' . $checksum . '" r-data="' . $json . '">', $content, 1);
 
+            // Replace find component directive
+            $content = preg_replace('~\[r-component\]~i', 'window.reactables.find(\'' . $id . '\')', $content);
+
             // Returns the content
             return $content;
         }

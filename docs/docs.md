@@ -94,6 +94,7 @@ Some predefined methods are:
 
 - `$refresh()` - refreshes the component render, without performing any action.
 - `$set('property_name', 'value')` - sets a property value in the component.
+- `$toggle('property_name')` - toggles a boolean property between true and false.
 
 ### Repeats
 You can automate a component method to run repeatedly in an specific interval of time.
