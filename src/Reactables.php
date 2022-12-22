@@ -26,8 +26,8 @@
          */
         public function register(){
             // Register the AJAX and assets routes
-            Rails::addProtectedRoute('reactables/component', ValidateChecksum::class, Component::class, 'component', 'post');
-            Rails::addRoute('reactables/assets.js', Component::class, 'assets');
+            Rails::addProtectedRoute('reactables/component', ValidateChecksum::class, Component::class, 'component', 'post', 'reactables-component-route');
+            Rails::addRoute('reactables/assets.js', Component::class, 'assets', [], 'reactables-assets-route');
 
             // Register the Skeltch directives
             Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1); ?>');
@@ -51,11 +51,9 @@
 
         /**
          * Renders the assets scripts in the view.
-         * @param bool $jquery (Optional) Include jQuery script.
          */
-        public static function renderAssets(bool $jquery = true){
-            if($jquery) $assets = '<script src="' . Util::baseUrl('reactables/assets.js') . '"></script>';
-            echo $assets;
+        public static function renderAssets(){
+            echo '<script src="' . Util::baseUrl('reactables/assets.js') . '"></script>';
         }
 
         /**
@@ -71,7 +69,7 @@
             $classname = Util::pascalCase($name);
             $viewname = Util::snakeCase($name);
             $targetFile = Util::location('controllers/Components/' . $classname . '.php');
-            if(file_exists($targetFile)) throw new ConsoleException('create-component', $args, "Component {$classname} already exists!");
+            if(is_file($targetFile)) throw new ConsoleException('create-component', $args, "Component {$classname} already exists!");
 
             // Checks components controllers folder
             if(!is_dir(Util::location('controllers/Components'))) mkdir(Util::location('controllers/Components'), 0755, true);

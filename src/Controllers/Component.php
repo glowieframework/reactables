@@ -36,6 +36,9 @@
             $class->initializeComponent();
             $class->fillComponentParams($data->data);
 
+            // Call update method
+            if(is_callable([$class, 'update'])) $class->update();
+
             // Check method call
             if($data->type == 'method' && !empty($data->extra)){
                 $method = $data->extra;
@@ -68,10 +71,8 @@
          * Handles the assets loader route.
          */
         public function assets(){
-            $scripts = file_get_contents(__DIR__ . '/../Assets/jquery.min.js')
-                    . file_get_contents(__DIR__ . '/../Assets/morphdom.min.js')
-                    . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');
-            $this->response->setBody($scripts);
+            $this->response->setContentType('text/javascript');
+            echo file_get_contents(__DIR__ . '/../Assets/morphdom.min.js') . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');;
         }
 
     }

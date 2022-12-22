@@ -5,6 +5,7 @@
     use Glowie\Core\Element;
     use Glowie\Core\View\View;
     use Glowie\Core\Http\Session;
+    use Glowie\Core\Tools\Validator;
     use Util;
 
     /**
@@ -23,6 +24,18 @@
          * @var Element
          */
         protected $component;
+
+        /**
+         * Associative array of validation rules.
+         * @var array
+         */
+        protected $rules = [];
+
+        /**
+         * Validator instance.
+         * @var Validator
+         */
+        private $validator;
 
         /**
          * Initializes the component core.
@@ -46,7 +59,7 @@
          */
         final public function getComponentData(){
             if(empty($this->component->toArray())) return '{}';
-            return $this->component->toJson(JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            return $this->component->toJson();
         }
 
         /**
@@ -86,6 +99,39 @@
         }
 
         /**
+         * Validates the component data using the `$rules` property and Glowie `Validator`.
+         * @param bool $bail (Optional) Stop validation of each property after first failure found.
+         * @param bool $bailAll (Optional) Stop validation of the component after first failure found.
+         * @return bool Returns true if all rules passed for all properties, false otherwise.
+         */
+        final protected function validate(bool $bail = false, bool $bailAll = false){
+            if(!$this->validator) $this->validator = new Validator();
+            if(empty($this->rules)) return true;
+            return $this->validator->validateFields($this->component, $this->rules, $bail, $bailAll);
+        }
+
+         /**
+         * Returns an associative array with the latest validation errors.
+         * @param string|null $key (Optional) Property name to get errors. Leave blank to get all.
+         * @return array Returns an array with the fetched errors.
+         */
+        final protected function getValidationErrors(?string $key = null){
+            if(!$this->validator) $this->validator = new Validator();
+            return $this->validator->getErrors($key);
+        }
+
+        /**
+         * Checks if a property is invalid. You must call `$this->validate()` first.
+         * @param string $key Property name to check for validation errors.
+         * @param string|null $rule (Optional) Specific rule to check for errors in the property. Leave blank to check all.
+         * @return bool Returns if the property validation has the specified errors.
+         */
+        final protected function isInvalid(string $key, ?string $rule = null){
+            if(!$this->validator) $this->validator = new Validator();
+            return $this->validator->hasError($key, $rule);
+        }
+
+        /**
          * Pumps the component with the data attributes.
          * @param string $content Component HTML content.
          * @return string Returns the pumped component HTML.
@@ -99,7 +145,7 @@
             $json = htmlspecialchars($this->getComponentData());
 
             // Pumps the content
-            $content = preg_replace('~<([^\s]+([^\s>]+))>~', '<$1 r-id="' . $id . '" r-checksum="' . $checksum . '" r-data="' . $json . '">', $content, 1);
+            $content = preg_replace('~<([^\s]+)(.*)>~', '<$1$2 r-id="' . $id . '" r-checksum="' . $checksum . '" r-data="' . $json . '" r-base-url="' . Util::baseUrl() . '">', $content, 1);
 
             // Replace find component directive
             $content = preg_replace('~\[r-component\]~i', 'window.reactables.find(\'' . $id . '\')', $content);

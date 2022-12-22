@@ -30,6 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
         data;
 
         /**
+         * Application base URL.
+         * @type {string}
+         */
+        base_url;
+
+        /**
          *
          * @param {Element} el Component element.
          */
@@ -39,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.id = this.el.getAttribute('r-id');
             this.checksum = this.el.getAttribute('r-checksum');
             this.data = JSON.parse(this.el.getAttribute('r-data'));
+            this.base_url = this.el.getAttribute('r-base-url');
 
             // Toggle loading elements
             this.toggle_loads();
@@ -118,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.el.removeAttribute('r-data');
             this.el.removeAttribute('r-id');
             this.el.removeAttribute('r-checksum');
+            this.el.removeAttribute('r-base-url');
         }
 
         /**
@@ -496,30 +504,45 @@ document.addEventListener('DOMContentLoaded', () => {
             this.toggle_loads(false);
 
             // Perform request
-            $.post('reactables/component', JSON.stringify({
+            let xhr = new XMLHttpRequest();
+            let component = this;
+            xhr.responseType = 'text';
+            xhr.open('POST', this.base_url + 'reactables/component', true);
+            xhr.send(JSON.stringify({
                 id: this.id,
                 checksum: this.checksum,
                 type: type,
                 data: this.data,
                 extra: extra
-            }), response => {
-                // Morphs the HTML
-                morphdom(this.el, response.html, {childrenOnly: true});
+            }));
 
-                // Parses the new data
-                this.data = JSON.parse(response.data);
+            xhr.onload = function() {
+                if(xhr.status == 200) {
+                    // Parse response
+                    let response = JSON.parse(xhr.responseText);
 
-                // Toggle loading elements
-                this.toggle_loads();
+                    // Morphs the HTML
+                    morphdom(component.el, response.html, {childrenOnly: true});
 
-                // Bind stuff
-                this.bind();
+                    // Parses the new data
+                    component.data = JSON.parse(response.data);
 
-                // Remove inits
-                this.remove_inits();
-            }).fail(error => {
-                this.el.innerHTML = error.responseText;
-            });
+                    // Toggle loading elements
+                    component.toggle_loads();
+
+                    // Bind stuff
+                    component.bind();
+
+                    // Remove inits
+                    component.remove_inits();
+                } else {
+                    xhr.onerror();
+                }
+            }
+
+            xhr.onerror = function() {
+                component.el.innerHTML = xhr.responseText;
+            }
         }
     }
 
