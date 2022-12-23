@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Array
                 if(name.endsWith('[]')) {
                     if(Array.isArray(value)) {
-                        model.querySelectorAll('option').forEach(option => {
+                        Array.from(model.options).forEach(option => {
                             if(value.some(v => v == option.value)) option.selected = true;
                         });
                     }
@@ -521,14 +521,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Parse response
                     let response = JSON.parse(xhr.responseText);
 
+                    // Redirect
+                    if(response.redirect) return window.location = response.redirect;
+
                     // Morphs the HTML
-                    morphdom(component.el, response.html, {childrenOnly: true});
+                    morphdom(component.el, response.html);
 
                     // Parses the new data
                     component.data = JSON.parse(response.data);
 
                     // Toggle loading elements
                     component.toggle_loads();
+
+                    // Remove attributes
+                    component.remove_attrs();
 
                     // Bind stuff
                     component.bind();

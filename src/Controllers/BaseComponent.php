@@ -38,10 +38,17 @@
         private $validator;
 
         /**
+         * Redirect target.
+         * @var string
+         */
+        private $redirectTarget = '';
+
+        /**
          * Initializes the component core.
          */
         final public function initializeComponent(){
             $this->component = new Element();
+            $this->validator = new Validator();
         }
 
         /**
@@ -49,8 +56,7 @@
          * @param array $params Associative array of parameters with each variable name and value to fill.
          */
         final public function fillComponentParams(array $params){
-            $params = array_merge($this->component->toArray(), $params);
-            $this->component = new Element($params);
+            $this->component->set($params);
         }
 
         /**
@@ -100,14 +106,15 @@
 
         /**
          * Validates the component data using the `$rules` property and Glowie `Validator`.
+         * @param array $rules (Optional) Associative array of custom validation rules. Leave empty to use your component default rules.
          * @param bool $bail (Optional) Stop validation of each property after first failure found.
          * @param bool $bailAll (Optional) Stop validation of the component after first failure found.
          * @return bool Returns true if all rules passed for all properties, false otherwise.
          */
-        final protected function validate(bool $bail = false, bool $bailAll = false){
-            if(!$this->validator) $this->validator = new Validator();
-            if(empty($this->rules)) return true;
-            return $this->validator->validateFields($this->component, $this->rules, $bail, $bailAll);
+        final protected function validate(array $rules = [], bool $bail = false, bool $bailAll = false){
+            if(empty($rules)) $rules = $this->rules;
+            if(empty($rules)) return true;
+            return $this->validator->validateFields($this->component, $rules, $bail, $bailAll);
         }
 
          /**
@@ -116,7 +123,6 @@
          * @return array Returns an array with the fetched errors.
          */
         final protected function getValidationErrors(?string $key = null){
-            if(!$this->validator) $this->validator = new Validator();
             return $this->validator->getErrors($key);
         }
 
@@ -127,8 +133,23 @@
          * @return bool Returns if the property validation has the specified errors.
          */
         final protected function isInvalid(string $key, ?string $rule = null){
-            if(!$this->validator) $this->validator = new Validator();
             return $this->validator->hasError($key, $rule);
+        }
+
+        /**
+         * Redirects the user to another page.
+         * @param string $url URL to redirect the user to.
+         */
+        final protected function redirect(string $url){
+            $this->redirectTarget = $url;
+        }
+
+        /**
+         * Returns the redirect target, if any.
+         * @return string|bool Redirect URL or false.
+         */
+        final public function getRedirectTarget(){
+            return !empty($this->redirectTarget) ? $this->redirectTarget : false;
         }
 
         /**
@@ -145,7 +166,11 @@
             $json = htmlspecialchars($this->getComponentData());
 
             // Pumps the content
-            $content = preg_replace('~<([^\s]+)(.*)>~', '<$1$2 r-id="' . $id . '" r-checksum="' . $checksum . '" r-data="' . $json . '" r-base-url="' . Util::baseUrl() . '">', $content, 1);
+            $content = preg_replace_callback('~<([^\s]+)(.*)>~', function($matches) use($id, $checksum, $json){
+                return sprintf('<%s%s r-id="%s" r-checksum="%s" r-data="%s" r-base-url="%s">',
+                    $matches[1], $matches[2], $id, $checksum, $json, Util::baseUrl()
+                );
+            }, $content, 1);
 
             // Replace find component directive
             $content = preg_replace('~\[r-component\]~i', 'window.reactables.find(\'' . $id . '\')', $content);
