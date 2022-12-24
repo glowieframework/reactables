@@ -16,14 +16,15 @@ Reactables is a plugin designed to create dynamic and reactive view components w
 
 ## Features
 - Create reactive components without Javascript or API calls
-- Interact with your backend logic without messing with your code
+- Interact with your backend logic using only PHP
 - Update the DOM in real time using Skeltch
+- Two-way data binding between view and controller
 - Listen for user interactions
 - Bundled validation interface
 - Completely SEO friendly
-- Incredibly lightweight and no performance harm
+- Incredibly lightweight and no performance impacts
 
 ## Credits
 Reactables and Glowie are currently being developed by [Gabriel Silva](https://eugabrielsilva.tk).
 
-Special thanks to the developers of [Livewire](https://github.com/livewire/livewire) and [morphdom](https://github.com/patrick-steele-idem/morphdom).
+Special thanks to the developers of [Livewire](https://github.com/livewire/livewire) and [morphdom](https://github.com/patrick-steele-idem/morphdom) for inspiring this plugin.

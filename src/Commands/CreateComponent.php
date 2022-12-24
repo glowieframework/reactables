@@ -3,7 +3,6 @@
 
     use Glowie\Core\CLI\Command;
     use Glowie\Plugins\Reactables\Reactables;
-    use Util;
 
     /**
      * Reactables create component command.
@@ -21,9 +20,10 @@
          */
         public function run(){
             $name = $this->argOrInput('name', 'Component name: ');
-            Reactables::createComponent($name, $this->getArgs());
-            $name = Util::pascalCase($name);
-            $this->success("Component {$name} created successfully!");
+            $result = Reactables::createComponent($name, $this->getArgs());
+            $this->success("Component {$result['classname']} created successfully!");
+            $this->info("Controller: {$result['controllerFile']}");
+            $this->info("View: {$result['viewFile']}");
         }
 
     }

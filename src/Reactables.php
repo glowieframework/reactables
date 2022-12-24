@@ -44,8 +44,8 @@
             if(!class_exists($class)) throw new ComponentException('Component "' . $component . '" does not exist');
             $class = new $class;
             $class->initializeComponent();
-            if(is_callable([$class, 'create'])) $class->create();
             $class->fillComponentParams($params);
+            if(is_callable([$class, 'create'])) $class->create();
             $class->make();
         }
 
@@ -68,8 +68,8 @@
             // Checks if the component exists
             $classname = Util::pascalCase($name);
             $viewname = Util::snakeCase($name);
-            $targetFile = Util::location('controllers/Components/' . $classname . '.php');
-            if(is_file($targetFile)) throw new ConsoleException('create-component', $args, "Component {$classname} already exists!");
+            $controllerFile = Util::location('controllers/Components/' . $classname . '.php');
+            if(is_file($controllerFile)) throw new ConsoleException('create-component', $args, "Component {$classname} already exists!");
 
             // Checks components controllers folder
             if(!is_dir(Util::location('controllers/Components'))) mkdir(Util::location('controllers/Components'), 0755, true);
@@ -79,7 +79,7 @@
             $template = file_get_contents(__DIR__ . '/Templates/Controller.php');
             $template = str_replace('__FIREFLY_TEMPLATE_NAME__', $classname, $template);
             $template = str_replace('__FIREFLY_TEMPLATE_VIEW__', $viewname, $template);
-            file_put_contents($targetFile, $template);
+            file_put_contents($controllerFile, $template);
 
             // Checks components view folder
             if(!is_dir(Util::location('views/components'))) mkdir(Util::location('views/components'), 0755, true);
@@ -87,8 +87,15 @@
 
             // Creates the view file
             $template = file_get_contents(__DIR__ . '/Templates/view.phtml');
-            $targetFile = Util::location('views/components/' . $viewname . '.phtml');
-            file_put_contents($targetFile, $template);
+            $viewFile = Util::location('views/components/' . $viewname . '.phtml');
+            file_put_contents($viewFile, $template);
+
+            // Return result
+            return [
+                'classname' => $classname,
+                'controllerFile' => $controllerFile,
+                'viewFile' => $viewFile
+            ];
         }
 
     }

@@ -73,7 +73,7 @@
          * @param string $call Method call.
          */
         final public function magicSet(string $call){
-            if(!preg_match('~\$set\(\'(.+)\' *, *(.+)\)~', $call, $matches)) return;
+            if(!preg_match('~\$set\(\'(.+)\' *, *\'(.+)\'\)~', $call, $matches)) return;
             if(count($matches) == 3) $this->component->set($matches[1], $matches[2]);
         }
 

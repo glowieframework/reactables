@@ -47,17 +47,26 @@ document.addEventListener('DOMContentLoaded', () => {
             this.data = JSON.parse(this.el.getAttribute('r-data'));
             this.base_url = this.el.getAttribute('r-base-url');
 
-            // Toggle loading elements
-            this.toggle_loads();
-
             // Remove attributes
             this.remove_attrs();
 
             // Bind stuff
             this.bind(true);
 
+            // Toggle loading elements
+            this.toggle_loads();
+
             // Run inits
             this.run_inits();
+        }
+
+        /**
+         * Runs a query selector excluding nested components elements.
+         * @param {string} query Query selector.
+         * @returns {Element[]} Returns an array with the filtered elements.
+         */
+        find(query) {
+            return Array.from(this.el.querySelectorAll(query)).filter(el => !el.closest('[r-id]'));
         }
 
         /**
@@ -66,53 +75,53 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         toggle_loads(ready = true) {
             if(ready) {
-                this.el.querySelectorAll('[r-loading]').forEach(el => {
+                this.find('[r-loading]').forEach(el => {
                     el.style.display = 'none';
                 });
 
-                this.el.querySelectorAll('[r-ready]').forEach(el => {
+                this.find('[r-ready]').forEach(el => {
                     let attr = el.getAttribute('r-ready');
                     el.style.display = attr.length ? attr : 'inline-block';
                 });
 
-                this.el.querySelectorAll('[r-loading-class]').forEach(el => {
+                this.find('[r-loading-class]').forEach(el => {
                     el.classList.remove(el.getAttribute('r-loading-class'));
                 });
 
-                this.el.querySelectorAll('[r-ready-class]').forEach(el => {
+                this.find('[r-ready-class]').forEach(el => {
                     el.classList.add(el.getAttribute('r-ready-class'));
                 });
 
-                this.el.querySelectorAll('[r-loading-attr]').forEach(el => {
+                this.find('[r-loading-attr]').forEach(el => {
                     el.removeAttribute(el.getAttribute('r-loading-attr'));
                 });
 
-                this.el.querySelectorAll('[r-ready-attr]').forEach(el => {
+                this.find('[r-ready-attr]').forEach(el => {
                     el.setAttribute(el.getAttribute('r-loading-attr'), 'true');
                 });
             } else {
-                this.el.querySelectorAll('[r-loading]').forEach(el => {
+                this.find('[r-loading]').forEach(el => {
                     let attr = el.getAttribute('r-loading');
                     el.style.display = attr.length ? attr : 'inline-block';
                 });
 
-                this.el.querySelectorAll('[r-ready]').forEach(el => {
+                this.find('[r-ready]').forEach(el => {
                     el.style.display = 'none';
                 });
 
-                this.el.querySelectorAll('[r-loading-class]').forEach(el => {
+                this.find('[r-loading-class]').forEach(el => {
                     el.classList.add(el.getAttribute('r-loading-class'));
                 });
 
-                this.el.querySelectorAll('[r-ready-class]').forEach(el => {
+                this.find('[r-ready-class]').forEach(el => {
                     el.classList.remove(el.getAttribute('r-ready-class'));
                 });
 
-                this.el.querySelectorAll('[r-loading-attr]').forEach(el => {
+                this.find('[r-loading-attr]').forEach(el => {
                     el.setAttribute(el.getAttribute('r-loading-attr'), 'true');
                 });
 
-                this.el.querySelectorAll('[r-ready-attr]').forEach(el => {
+                this.find('[r-ready-attr]').forEach(el => {
                     el.removeAttribute(el.getAttribute('r-loading-attr'));
                 });
             }
@@ -144,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         bind_models(listen = false) {
             // Inputs
-            this.el.querySelectorAll('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
+            this.find('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
                 // Set initial value
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
@@ -175,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Checkboxes and radios
-            this.el.querySelectorAll('input[type=checkbox][r-model], input[type=radio][r-model]').forEach(model => {
+            this.find('input[type=checkbox][r-model], input[type=radio][r-model]').forEach(model => {
                 // Set initial value
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
@@ -242,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Selects
-            this.el.querySelectorAll('select[r-model]').forEach(model => {
+            this.find('select[r-model]').forEach(model => {
                 // Set initial value
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
@@ -294,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         bind_events(listen = false) {
             // Clicks
-            this.el.querySelectorAll('[r-click]').forEach(el => {
+            this.find('[r-click]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-click');
                 let prevent = el.hasAttribute('r-prevent');
@@ -311,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Form submit
-            this.el.querySelectorAll('[r-submit]').forEach(el => {
+            this.find('[r-submit]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-submit');
                 let prevent = el.hasAttribute('r-prevent');
@@ -328,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Focus
-            this.el.querySelectorAll('[r-focus]').forEach(el => {
+            this.find('[r-focus]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-focus');
                 let prevent = el.hasAttribute('r-prevent');
@@ -345,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Blur
-            this.el.querySelectorAll('[r-blur]').forEach(el => {
+            this.find('[r-blur]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-blur');
                 let prevent = el.hasAttribute('r-prevent');
@@ -362,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Mouse hover
-            this.el.querySelectorAll('[r-hover]').forEach(el => {
+            this.find('[r-hover]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-hover');
                 let prevent = el.hasAttribute('r-prevent');
@@ -379,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Mouse leave
-            this.el.querySelectorAll('[r-leave]').forEach(el => {
+            this.find('[r-leave]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-leave');
                 let prevent = el.hasAttribute('r-prevent');
@@ -396,14 +405,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Enter key
-            this.el.querySelectorAll('[r-enter]').forEach(el => {
+            this.find('[r-enter]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-enter');
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
                 if(listen) el.addEventListener('keydown', event => {
-                    if(e.keyCode !== 13) return;
+                    if(event.keyCode !== 13) return;
                     if(prevent) event.preventDefault();
                     this.refresh('method', value);
                 });
@@ -414,14 +423,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Tab key
-            this.el.querySelectorAll('[r-tab]').forEach(el => {
+            this.find('[r-tab]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-tab');
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
                 if(listen) el.addEventListener('keydown', event => {
-                    if(e.keyCode !== 9) return;
+                    if(event.keyCode !== 9) return;
                     if(prevent) event.preventDefault();
                     this.refresh('method', value);
                 });
@@ -437,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * @param {boolean} listen Create event listeners.
          */
         bind_repeats(listen = false) {
-            this.el.querySelectorAll('[r-repeat][r-interval]').forEach(el => {
+            this.find('[r-repeat][r-interval]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-repeat');
                 let interval = el.getAttribute('r-interval');
@@ -461,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Run init functions.
          */
         run_inits() {
-            this.el.querySelectorAll('[r-init]').forEach(el => {
+            this.find('[r-init]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-init');
                 let timeout = el.getAttribute('r-timeout');
@@ -487,7 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Remove init attributes.
          */
         remove_inits() {
-            this.el.querySelectorAll('[r-init]').forEach(el => {
+            this.find('[r-init]').forEach(el => {
                 // Remove attributes
                 el.removeAttribute('r-init');
                 el.removeAttribute('r-timeout');
@@ -530,14 +539,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Parses the new data
                     component.data = JSON.parse(response.data);
 
-                    // Toggle loading elements
-                    component.toggle_loads();
-
                     // Remove attributes
                     component.remove_attrs();
 
                     // Bind stuff
                     component.bind();
+
+                    // Toggle loading elements
+                    component.toggle_loads();
 
                     // Remove inits
                     component.remove_inits();
@@ -547,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             xhr.onerror = function() {
-                component.el.innerHTML = xhr.responseText;
+                window.reactables.show_error(xhr.responseText);
             }
         }
     }
@@ -568,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         init() {
             // Initialize components
-            document.querySelectorAll('[r-id][r-checksum][r-data]').forEach(el => {
+            document.querySelectorAll('[r-id]').forEach(el => {
                 this.components.push(new ReactablesComponent(el));
             });
 
@@ -583,6 +592,17 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         find(id) {
             return this.components.find(c => c.id == id);
+        }
+
+        /**
+         * Shows the error modal.
+         * @param {string} error Error HTML.
+         */
+        show_error(error) {
+            let errorContainer = document.createElement('div');
+            errorContainer.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:999999;background:rgba(0,0,0,.7);overflow:auto;';
+            errorContainer.innerHTML = error;
+            document.body.appendChild(errorContainer);
         }
     }
 
