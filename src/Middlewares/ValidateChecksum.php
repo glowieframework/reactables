@@ -21,7 +21,7 @@
          */
         public function handle(){
             // Retrieves the token from POST field
-            $token = $this->request->getJson('checksum');
+            $token = $this->post->checksum;
 
             // Validates the token
             if(empty($token)) return false;

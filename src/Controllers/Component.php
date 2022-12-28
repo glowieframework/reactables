@@ -22,7 +22,7 @@
          */
         public function component(){
             // Get request data
-            $data = $this->request->getJson();
+            $data = $this->post;
             if(empty($data->id)) return;
 
             // Instantiate component class
@@ -34,7 +34,7 @@
 
             // Initialize component data
             $class->initializeComponent();
-            $class->fillComponentParams($data->data);
+            $class->fillComponentParams(json_decode($data->data, true));
 
             // Call update method
             if(is_callable([$class, 'update'])) $class->update();

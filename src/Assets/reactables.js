@@ -36,6 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
         base_url;
 
         /**
+         * Uploaded files.
+         * @type {Object}
+         */
+        files;
+
+        /**
          *
          * @param {Element} el Component element.
          */
@@ -46,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.checksum = this.el.getAttribute('r-checksum');
             this.data = JSON.parse(this.el.getAttribute('r-data'));
             this.base_url = this.el.getAttribute('r-base-url');
+            this.files = {};
 
             // Remove attributes
             this.remove_attrs();
@@ -295,6 +302,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             });
+
+            // File inputs
+            this.find('input[type=file][r-model]').forEach(model => {
+                let name = model.getAttribute('r-model');
+                let lazy = model.hasAttribute('r-lazy');
+                let debounce = model.getAttribute('r-debounce');
+                let debounceTimeout = null;
+
+                // Set binding event
+                if(listen) model.addEventListener('input', () => {
+                    this.files[name] = model.files;
+                    if(!lazy) {
+                        if(debounce) {
+                            if(debounceTimeout) clearTimeout(debounceTimeout);
+                            debounceTimeout = setTimeout(() => {
+                                this.refresh();
+                            }, debounce);
+                        } else {
+                            this.refresh();
+                        }
+                    }
+                });
+
+                // Remove attributes
+                model.removeAttribute('r-model');
+                model.removeAttribute('r-lazy');
+                model.removeAttribute('r-debounce');
+            });
         }
 
         /**
@@ -512,18 +547,27 @@ document.addEventListener('DOMContentLoaded', () => {
             // Toggle loading elements
             this.toggle_loads(false);
 
+            // Wrap request data
+            let data = new FormData();
+            data.append('id', this.id);
+            data.append('checksum', this.checksum);
+            data.append('type', type);
+            data.append('data', JSON.stringify(this.data));
+            data.append('extra', extra);
+
+            // Append uploaded files, if any
+            for(let key in this.files) {
+                Array.from(this.files[key]).forEach(file => {
+                    data.append(key + '[]', file);
+                });
+            }
+
             // Perform request
             let xhr = new XMLHttpRequest();
             let component = this;
             xhr.responseType = 'text';
             xhr.open('POST', this.base_url + 'reactables/component', true);
-            xhr.send(JSON.stringify({
-                id: this.id,
-                checksum: this.checksum,
-                type: type,
-                data: this.data,
-                extra: extra
-            }));
+            xhr.send(data);
 
             xhr.onload = function() {
                 if(xhr.status == 200) {
@@ -538,6 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Parses the new data
                     component.data = JSON.parse(response.data);
+                    component.files = {};
 
                     // Remove attributes
                     component.remove_attrs();
