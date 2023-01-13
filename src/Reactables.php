@@ -46,8 +46,9 @@
             if(!class_exists($class)) throw new ComponentException('Component "' . $component . '" does not exist');
             $class = new $class;
             $class->initializeComponent();
-            $class->fillComponentParams($params);
             if(is_callable([$class, 'create'])) $class->create();
+            $class->fillComponentParams($params);
+            $class->fillQueryParams();
             $class->make();
         }
 

@@ -18,7 +18,7 @@
     class Component extends Controller{
 
         /**
-         * Handles the component AJAX route.
+         * Handles the component update AJAX route.
          */
         public function component(){
             // Get request data
@@ -69,6 +69,7 @@
             // Return response
             $this->response->setJson([
                 'html' => $html,
+                'query' => $class->buildQueryString(),
                 'data' => $class->getComponentData()
             ]);
         }

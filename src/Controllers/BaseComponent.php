@@ -47,6 +47,12 @@
         protected $uploadRules = ['upload', 'max:15000'];
 
         /**
+         * Array of query string parameters.
+         * @var array
+         */
+        protected $query = [];
+
+        /**
          * Validator instance.
          * @var Validator
          */
@@ -81,6 +87,39 @@
         final public function getComponentData(){
             if(empty($this->component->toArray())) return '{}';
             return $this->component->toJson();
+        }
+
+        /**
+         * Fills the component data using query string parameters.
+         */
+        final public function fillQueryParams(){
+            if(empty($this->query)) return;
+            foreach($this->query as $key => $item){
+                if(is_numeric($key)){
+                    if($this->get->has($item)) $this->component->set($item, $this->get->get($item, ''));
+                }else{
+                    if($this->get->has($key)) $this->component->set($key, $this->get->get($key, ''));
+                }
+            }
+        }
+
+        /**
+         * Builds the query string parameters.
+         */
+        final public function buildQueryString(){
+            if(empty($this->query)) return null;
+            $result = [];
+            foreach($this->query as $key => $item){
+                if(is_numeric($key)){
+                    if($this->component->has($item)) $result[$item] = $this->component->get($item, '');
+                }else{
+                    if($this->component->has($key)){
+                        $val = $this->component->get($key, '');
+                        if(!in_array($val, (array)$item)) $result[$key] = $val;
+                    }
+                }
+            }
+            return http_build_query($result);
         }
 
         /**

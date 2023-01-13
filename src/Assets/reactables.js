@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Application base URL.
          * @type {string}
          */
-        base_url;
+        baseUrl;
 
         /**
          * Uploaded files.
@@ -51,20 +51,20 @@ document.addEventListener('DOMContentLoaded', () => {
             this.id = this.el.getAttribute('r-id');
             this.checksum = this.el.getAttribute('r-checksum');
             this.data = JSON.parse(this.el.getAttribute('r-data'));
-            this.base_url = this.el.getAttribute('r-base-url');
+            this.baseUrl = this.el.getAttribute('r-base-url');
             this.files = {};
 
             // Remove attributes
-            this.remove_attrs();
+            this.removeAttrs();
 
             // Bind stuff
             this.bind(true);
 
             // Toggle loading elements
-            this.toggle_loads();
+            this.toggleLoads();
 
             // Run inits
-            this.run_inits();
+            this.runInits();
         }
 
         /**
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Toggles the loading/ready elements.
          * @param {boolean} ready Ready state.
          */
-        toggle_loads(ready = true) {
+        toggleLoads(ready = true) {
             if(ready) {
                 this.find('[r-loading]').forEach(el => {
                     el.style.display = 'none';
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         /**
          * Removes the attributes from the component.
          */
-        remove_attrs() {
+        removeAttrs() {
             this.el.removeAttribute('r-data');
             this.el.removeAttribute('r-id');
             this.el.removeAttribute('r-checksum');
@@ -149,16 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
          * @param {boolean} listen Create event listeners.
          */
         bind(listen = false) {
-            this.bind_models(listen);
-            this.bind_events(listen);
-            this.bind_repeats(listen);
+            this.bindModels(listen);
+            this.bindEvents(listen);
+            this.bindRepeats(listen);
         }
 
         /**
          * Binds input models.
          * @param {boolean} listen Create event listeners.
          */
-        bind_models(listen = false) {
+        bindModels(listen = false) {
             // Inputs
             this.find('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
                 // Set initial value
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Binds actions to events.
          * @param {boolean} listen Create event listeners.
          */
-        bind_events(listen = false) {
+        bindEvents(listen = false) {
             // Clicks
             this.find('[r-click]').forEach(el => {
                 // Get value
@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Binds the repeat calls.
          * @param {boolean} listen Create event listeners.
          */
-        bind_repeats(listen = false) {
+        bindRepeats(listen = false) {
             this.find('[r-repeat][r-interval]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-repeat');
@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
         /**
          * Run init functions.
          */
-        run_inits() {
+        runInits() {
             this.find('[r-init]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-init');
@@ -530,12 +530,23 @@ document.addEventListener('DOMContentLoaded', () => {
         /**
          * Remove init attributes.
          */
-        remove_inits() {
+        removeInits() {
             this.find('[r-init]').forEach(el => {
                 // Remove attributes
                 el.removeAttribute('r-init');
                 el.removeAttribute('r-timeout');
             });
+        }
+
+        /**
+         * Parse query string.
+         * @param {?string} query Query string.
+         */
+        parseQuery(query) {
+            let url = window.location.pathname;
+            if(query && query.length) url += '?' + query;
+            if(window.location.hash) url += window.location.hash;
+            if(url != window.location.href) window.history.pushState({}, '', url);
         }
 
         /**
@@ -545,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         refresh(type = 'model', extra = null) {
             // Toggle loading elements
-            this.toggle_loads(false);
+            this.toggleLoads(false);
 
             // Wrap request data
             let data = new FormData();
@@ -566,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let xhr = new XMLHttpRequest();
             let component = this;
             xhr.responseType = 'text';
-            xhr.open('POST', this.base_url + 'reactables/component', true);
+            xhr.open('POST', this.baseUrl + 'reactables/component', true);
             xhr.send(data);
 
             xhr.onload = function() {
@@ -585,22 +596,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     component.files = {};
 
                     // Remove attributes
-                    component.remove_attrs();
+                    component.removeAttrs();
 
                     // Bind stuff
                     component.bind();
 
+                    // Parse query string
+                    component.parseQuery(response.query);
+
                     // Toggle loading elements
-                    component.toggle_loads();
+                    component.toggleLoads();
 
                     // Remove inits
-                    component.remove_inits();
+                    component.removeInits();
                 } else if(xhr.status == 403) {
                     // Page expired handler
                     if(window.reactables.expiredHandler) {
                         window.reactables['expiredHandler']();
                     } else {
-                        window.reactables.show_expired();
+                        window.reactables.showExpired();
                     }
                 } else {
                     // Error
@@ -612,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(window.reactables.errorHandler) {
                     window.reactables['errorHandler'](xhr.responseText, xhr.status);
                 } else {
-                    window.reactables.show_error(xhr.responseText);
+                    window.reactables.showError(xhr.responseText);
                 }
             }
         }
@@ -684,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Shows the default error modal.
          * @param {string} error Error HTML.
          */
-        show_error(error) {
+        showError(error) {
             let errorContainer = document.createElement('div');
             errorContainer.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:999999;background:rgba(0,0,0,.7);overflow:auto;';
             errorContainer.innerHTML = error;
@@ -694,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
         /**
          * Shows the default Page Expired message.
          */
-        show_expired() {
+        showExpired() {
             if(confirm('This page has expired.\nWould you like to refresh the page?')) {
                 window.location.reload();
             }
