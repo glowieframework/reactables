@@ -34,7 +34,10 @@
 
             // Initialize component data
             $class->initializeComponent();
-            $class->fillComponentParams(json_decode($data->data, true));
+            $class->fillComponentParams((array)json_decode($data->data));
+
+            // Handle uploads
+            $class->handleUploads();
 
             // Call update method
             if(is_callable([$class, 'update'])) $class->update();

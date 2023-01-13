@@ -5,7 +5,10 @@
     use Glowie\Core\Element;
     use Glowie\Core\View\View;
     use Glowie\Core\Http\Session;
+    use Glowie\Core\Exception\FileException;
+    use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Core\Tools\Validator;
+    use Config;
     use Util;
 
     /**
@@ -30,6 +33,18 @@
          * @var array
          */
         protected $rules = [];
+
+        /**
+         * Array of file input models.
+         * @var array
+         */
+        protected $files = [];
+
+        /**
+         * Array of file upload validation rules.
+         * @var array
+         */
+        protected $uploadRules = ['upload', 'max:15000'];
 
         /**
          * Validator instance.
@@ -150,6 +165,80 @@
          */
         final public function getRedirectTarget(){
             return !empty($this->redirectTarget) ? $this->redirectTarget : false;
+        }
+
+        /**
+         * Handles temporary file uploads.
+         */
+        final public function handleUploads(){
+            // Checks if file models were set
+            if(!empty($this->files)){
+
+                // Checks for each file input
+                foreach($this->files as $input){
+                    $files = $this->request->getFiles($input);
+                    if(empty($files)) continue;
+
+                    // Performs the temporary uploads
+                    $result = [];
+                    foreach($files as $file){
+                        if(!empty($file->error)) continue;
+                        $target = rtrim(Config::get('reactables.tmp_path', Util::location('storage/reactables')), '/\\');
+                        if(!is_dir($target)) mkdir($target, 0755, true);
+                        if(!is_writable($target)) throw new FileException('Directory "' . $target . '" is invalid or not writable');
+
+                        // Validate the file
+                        if(!$this->validator->validate($file->tmp_name, $this->uploadRules, true)) continue;
+
+                        // Upload the file
+                        $target = $target . DIRECTORY_SEPARATOR . Util::uniqueToken() . '.tmp';
+                        if(@move_uploaded_file($file->tmp_name, $target)){
+                            $file->tmp_name = $target;
+                            $result[] = $file;
+                        }
+                    }
+
+                    // Parse the first file only
+                    if(count($result) == 1 && !empty($result[0])) $result = $result[0];
+
+                    // Sets the result to the component property
+                    $this->component->set($input, $result);
+                }
+            }
+        }
+
+        /**
+         * Previews an uploaded file.
+         * @param object $file The temporary uploaded file instance.
+         * @return string|bool Returns the preview as a **base64 string** on success, false on errors.
+         */
+        final protected function previewUpload(object $file){
+            if(!isset($file->tmp_name) || !isset($file->type)) throw new ComponentException('previewUpload(): Not a valid file');
+            $content = file_get_contents($file->tmp_name);
+            if(!$content) return false;
+            return 'data: '. $file->type . ';base64,' . base64_encode($content);
+        }
+
+        /**
+         * Stores a temporary uploaded file in a definitive way.
+         * @param object $file The temporary uploaded file instance.
+         * @param string $directory (Optional) Target directory to store the file. Must be an existing directory with write permissions,\
+         * absolute path or relative to the **app/public** folder.
+         * @param string|null $filename (Optional) Custom filename, leave empty to use the original filename. **This overwrites existing files!**
+         * @return string|bool Returns the resulting filename path on success, false on errors.
+         */
+        final protected function storeUpload(object $file, string $directory = 'uploads', ?string $filename = null){
+            // Validate file
+            if(!isset($file->tmp_name) || !isset($file->name)) throw new ComponentException('storeUpload(): Not a valid file');
+
+            // Checks for target folder
+            $directory = rtrim($directory, '/\\');
+            if(!is_writable($directory)) throw new FileException('Directory "' . $directory . '" is invalid or not writable');
+
+            // Move the temp file to the target folder
+            $target = $directory . DIRECTORY_SEPARATOR . ($filename ?? $file->name);
+            $result = rename($file->tmp_name, $target);
+            return $result ? $target : false;
         }
 
         /**

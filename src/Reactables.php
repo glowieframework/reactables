@@ -1,6 +1,7 @@
 <?php
     namespace Glowie\Plugins\Reactables;
 
+    use Config;
     use Glowie\Core\Plugin;
     use Glowie\Core\Http\Rails;
     use Glowie\Core\View\Skeltch;
@@ -18,7 +19,8 @@
          * @var array
          */
         protected $files = [
-            __DIR__ . '/Commands/CreateComponent.php' => 'commands/CreateComponent.php'
+            __DIR__ . '/Commands/CreateComponent.php' => 'commands/CreateComponent.php',
+            __DIR__ . '/Commands/DeleteTempUploads.php' => 'commands/DeleteTempUploads.php'
         ];
 
         /**
@@ -96,6 +98,15 @@
                 'controllerFile' => $controllerFile,
                 'viewFile' => $viewFile
             ];
+        }
+
+        /**
+         * Handler for `delete-temp-uploads` Firefly command.
+         */
+        public static function deleteTempUploads(){
+            $dir = Config::get('reactables.tmp_path', Util::location('storage/reactables'));
+            if(!is_writable($dir)) throw new FileException('Directory "' . $dir . '" is not writable, please check your chmod settings');
+            foreach (Util::getFiles($dir . '/*') as $filename) unlink($filename);
         }
 
     }

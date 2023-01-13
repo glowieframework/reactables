@@ -197,9 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 let lazy = model.hasAttribute('r-lazy');
                 let debounce = model.getAttribute('r-debounce');
                 let debounceTimeout = null;
-                let qualifiedName = name.replace('[]', '');
+                let rawName = name.replace('[]', '');
                 let custom = model.getAttribute('value');
-                let value = this.data[qualifiedName];
+                let value = this.data[rawName];
 
                 // Array
                 if(name.endsWith('[]')) {
@@ -221,13 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(listen) model.addEventListener('input', () => {
                     // Array
                     if(name.endsWith('[]')) {
-                        if(!Array.isArray(this.data[qualifiedName])) this.data[qualifiedName] = [];
+                        if(!Array.isArray(this.data[rawName])) this.data[rawName] = [];
                         if(custom) {
                             if(model.checked) {
-                                this.data[qualifiedName].push(custom);
+                                this.data[rawName].push(custom);
                             } else {
-                                let idx = this.data[qualifiedName].findIndex(v => v == custom);
-                                if(idx !== -1) this.data[qualifiedName].splice(idx, 1);
+                                let idx = this.data[rawName].findIndex(v => v == custom);
+                                if(idx !== -1) this.data[rawName].splice(idx, 1);
                             }
                         }
                     } else {
@@ -264,8 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 let lazy = model.hasAttribute('r-lazy');
                 let debounce = model.getAttribute('r-debounce');
                 let debounceTimeout = null;
-                let qualifiedName = name.replace('[]', '');
-                let value = this.data[qualifiedName];
+                let rawName = name.replace('[]', '');
+                let value = this.data[rawName];
 
                 // Array
                 if(name.endsWith('[]')) {
@@ -282,12 +282,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(listen) model.addEventListener('input', () => {
                     // Array
                     if(name.endsWith('[]')) {
-                        this.data[qualifiedName] = [];
+                        this.data[rawName] = [];
                         Array.from(model.selectedOptions).forEach(option => {
-                            this.data[qualifiedName].push(option.value);
+                            this.data[rawName].push(option.value);
                         });
                     } else {
-                        this.data[qualifiedName] = model.value;
+                        this.data[rawName] = model.value;
                     }
 
                     if(!lazy) {
@@ -595,13 +595,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Remove inits
                     component.remove_inits();
+                } else if(xhr.status == 403) {
+                    // Page expired handler
+                    if(window.reactables.expiredHandler) {
+                        window.reactables['expiredHandler']();
+                    } else {
+                        window.reactables.show_expired();
+                    }
                 } else {
+                    // Error
                     xhr.onerror();
                 }
             }
 
             xhr.onerror = function() {
-                window.reactables.show_error(xhr.responseText);
+                if(window.reactables.errorHandler) {
+                    window.reactables['errorHandler'](xhr.responseText, xhr.status);
+                } else {
+                    window.reactables.show_error(xhr.responseText);
+                }
             }
         }
     }
@@ -616,6 +628,18 @@ document.addEventListener('DOMContentLoaded', () => {
          * @type {ReactablesComponent[]}
          */
         components = [];
+
+        /**
+         * Error handler.
+         * @type {?Function}
+         */
+        errorHandler = null;
+
+        /**
+         * Page expired handler.
+         * @type {?Function}
+         */
+        expireHandler = null;
 
         /**
          * Initializes the Reactables core.
@@ -640,7 +664,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         /**
-         * Shows the error modal.
+         * Sets a custom error handler.
+         * @param {Function} callback Custom error handler function. The function receives two parameters:\
+         * the error message body and the HTTP status code.
+         */
+        onError(callback) {
+            this.errorHandler = callback;
+        }
+
+        /**
+         * Sets a custom Page Expired error handler.
+         * @param {Function} callback Custom page expired handler function.
+         */
+        onExpired(callback) {
+            this.expireHandler = callback;
+        }
+
+        /**
+         * Shows the default error modal.
          * @param {string} error Error HTML.
          */
         show_error(error) {
@@ -648,6 +689,15 @@ document.addEventListener('DOMContentLoaded', () => {
             errorContainer.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:999999;background:rgba(0,0,0,.7);overflow:auto;';
             errorContainer.innerHTML = error;
             document.body.appendChild(errorContainer);
+        }
+
+        /**
+         * Shows the default Page Expired message.
+         */
+        show_expired() {
+            if(confirm('This page has expired.\nWould you like to refresh the page?')) {
+                window.location.reload();
+            }
         }
     }
 
