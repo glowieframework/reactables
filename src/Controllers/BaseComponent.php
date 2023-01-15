@@ -95,11 +95,8 @@
         final public function fillQueryParams(){
             if(empty($this->query)) return;
             foreach($this->query as $key => $item){
-                if(is_numeric($key)){
-                    if($this->get->has($item)) $this->component->set($item, $this->get->get($item, ''));
-                }else{
-                    if($this->get->has($key)) $this->component->set($key, $this->get->get($key, ''));
-                }
+                if(!is_numeric($key)) $item = $key;
+                if($this->get->has($item)) $this->component->set($item, $this->get->get($item, ''));
             }
         }
 
@@ -253,7 +250,7 @@
          */
         final protected function previewUpload(object $file){
             if(!isset($file->tmp_name) || !isset($file->type)) throw new ComponentException('previewUpload(): Not a valid file');
-            $content = file_get_contents($file->tmp_name);
+            $content = @file_get_contents($file->tmp_name);
             if(!$content) return false;
             return 'data: '. $file->type . ';base64,' . base64_encode($content);
         }
@@ -301,7 +298,7 @@
             }, $content, 1);
 
             // Replace find component directive
-            $content = preg_replace('~\[r-component\]~i', 'window.reactables.find(\'' . $id . '\')', $content);
+            $content = preg_replace('~\[r-component\]~i', 'document.reactables.find(\'' . $id . '\')', $content);
 
             // Returns the content
             return $content;

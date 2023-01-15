@@ -543,10 +543,10 @@ document.addEventListener('DOMContentLoaded', () => {
          * @param {?string} query Query string.
          */
         parseQuery(query) {
-            let url = window.location.pathname;
+            let url = document.location.pathname;
             if(query && query.length) url += '?' + query;
-            if(window.location.hash) url += window.location.hash;
-            if(url != window.location.href) window.history.pushState({}, '', url);
+            if(document.location.hash) url += document.location.hash;
+            if(url != document.location.href) window.history.pushState({}, '', url);
         }
 
         /**
@@ -573,20 +573,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Perform request
+            // Create request
             let xhr = new XMLHttpRequest();
             let component = this;
             xhr.responseType = 'text';
             xhr.open('POST', this.baseUrl + 'reactables/component', true);
-            xhr.send(data);
 
+            // Upload progress event
+            xhr.upload.onprogress = function(e) {
+                let percent = Math.round((e.loaded / e.total) * 100);
+                let event = new CustomEvent('reactables-upload-progress', {detail: percent});
+                component.el.dispatchEvent(event);
+            }
+
+            // Upload success event
+            xhr.upload.onload = function() {
+                let event = new Event('reactables-upload-success');
+                component.el.dispatchEvent(event);
+            }
+
+            // Upload error event
+            xhr.upload.onerror = function() {
+                let event = new Event('reactables-upload-failed');
+                component.el.dispatchEvent(event);
+            }
+
+            // Load event
             xhr.onload = function() {
                 if(xhr.status == 200) {
                     // Parse response
                     let response = JSON.parse(xhr.responseText);
 
                     // Redirect
-                    if(response.redirect) return window.location = response.redirect;
+                    if(response.redirect) return document.location = response.redirect;
 
                     // Morphs the HTML
                     morphdom(component.el, response.html);
@@ -609,12 +628,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Remove inits
                     component.removeInits();
+
+                    // Dispatch update event
+                    let event = new Event('reactables-update-success');
+                    component.el.dispatchEvent(event);
                 } else if(xhr.status == 403) {
                     // Page expired handler
-                    if(window.reactables.expiredHandler) {
-                        window.reactables['expiredHandler']();
+                    if(document.reactables.expiredHandler) {
+                        document.reactables['expiredHandler']();
                     } else {
-                        window.reactables.showExpired();
+                        document.reactables.showExpired();
                     }
                 } else {
                     // Error
@@ -622,13 +645,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // Error event
             xhr.onerror = function() {
-                if(window.reactables.errorHandler) {
-                    window.reactables['errorHandler'](xhr.responseText, xhr.status);
+                if(document.reactables.errorHandler) {
+                    document.reactables['errorHandler'](xhr.responseText, xhr.status);
                 } else {
-                    window.reactables.showError(xhr.responseText);
+                    document.reactables.showError(xhr.responseText);
                 }
             }
+
+            // Perform request
+            xhr.send(data);
         }
     }
 
@@ -653,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Page expired handler.
          * @type {?Function}
          */
-        expireHandler = null;
+        expiredHandler = null;
 
         /**
          * Initializes the Reactables core.
@@ -691,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * @param {Function} callback Custom page expired handler function.
          */
         onExpired(callback) {
-            this.expireHandler = callback;
+            this.expiredHandler = callback;
         }
 
         /**
@@ -710,18 +737,18 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         showExpired() {
             if(confirm('This page has expired.\nWould you like to refresh the page?')) {
-                window.location.reload();
+                document.location.reload();
             }
         }
     }
 
     // Checks for duplicated assets
-    if(window.reactables) {
+    if(document.reactables) {
         console.error('[Reactables] You don\'t neet to included the assets more than once!');
         return;
     }
 
     // Init Reactables
-    window.reactables = new Reactables();
-    window.reactables.init();
+    document.reactables = new Reactables();
+    document.reactables.init();
 });

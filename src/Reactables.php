@@ -19,8 +19,7 @@
          * @var array
          */
         protected $files = [
-            __DIR__ . '/Commands/CreateComponent.php' => 'commands/CreateComponent.php',
-            __DIR__ . '/Commands/DeleteTempUploads.php' => 'commands/DeleteTempUploads.php'
+            __DIR__ . '/Commands' => 'commands',
         ];
 
         /**
