@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
         id;
 
         /**
+         * Component name.
+         * @type {string}
+         */
+        name;
+
+        /**
          * Checksum hash.
          * @type {string}
          */
@@ -49,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Parse component
             this.el = el;
             this.id = this.el.getAttribute('r-id');
+            this.name = this.el.getAttribute('r-name');
             this.checksum = this.el.getAttribute('r-checksum');
             this.data = JSON.parse(this.el.getAttribute('r-data'));
             this.baseUrl = this.el.getAttribute('r-base-url');
@@ -142,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.el.removeAttribute('r-id');
             this.el.removeAttribute('r-checksum');
             this.el.removeAttribute('r-base-url');
+            this.el.removeAttribute('r-name');
         }
 
         /**
@@ -697,11 +705,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         /**
-         * Finds a component.
+         * Returns all components.
+         * @returns {ReactablesComponent[]} Returns the component list.
+         */
+        all() {
+            return this.components;
+        }
+
+        /**
+         * Finds a component by its id.
          * @param {string} id Component id to search.
+         * @returns {ReactablesComponent | undefined} Returns the component if found.
          */
         find(id) {
             return this.components.find(c => c.id == id);
+        }
+
+        /**
+         * Finds a component by its name.
+         * @param {string} name Component name to search.
+         * @returns {ReactablesComponent | undefined} Returns the component if found.
+         */
+        findName(name) {
+            return this.components.find(c => c.name == name);
         }
 
         /**

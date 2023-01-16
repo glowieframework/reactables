@@ -283,17 +283,18 @@
          * @return string Returns the pumped component HTML.
          */
         private function putData(string $content){
-            // Get component id and checksum
-            $id = Util::encryptString(Util::classname($this));
+            // Get component name, id and checksum
+            $name = Util::classname($this);
+            $id = Util::encryptString($name);
             $checksum = $this->checksum();
 
             // Parse component data
             $json = htmlspecialchars($this->getComponentData());
 
             // Pumps the content
-            $content = preg_replace_callback('~<([^\s]+)(.*)>~', function($matches) use($id, $checksum, $json){
-                return sprintf('<%s%s r-id="%s" r-checksum="%s" r-data="%s" r-base-url="%s">',
-                    $matches[1], $matches[2], $id, $checksum, $json, Util::baseUrl()
+            $content = preg_replace_callback('~<([^\s]+)(.*)>~', function($matches) use($id, $name, $checksum, $json){
+                return sprintf('<%s%s r-id="%s" r-name="%s" r-checksum="%s" r-data="%s" r-base-url="%s">',
+                    $matches[1], $matches[2], $id, $name, $checksum, $json, Util::baseUrl()
                 );
             }, $content, 1);
 
@@ -323,5 +324,3 @@
         public abstract function make();
 
     }
-
-?>
