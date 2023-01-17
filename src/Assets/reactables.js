@@ -48,10 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor(el) {
             // Parse component
             this.el = el;
+            let data = JSON.parse(this.el.getAttribute('r-data'));
             this.id = this.el.getAttribute('r-id');
-            this.checksum = this.el.getAttribute('r-checksum');
-            this.data = JSON.parse(this.el.getAttribute('r-data'));
-            this.baseUrl = this.el.getAttribute('r-base-url');
+            this.name = data.name;
+            this.data = JSON.parse(data.data);
+            this.checksum = data.checksum;
+            this.baseUrl = data.base_url;
             this.files = {};
 
             // Remove attributes
@@ -138,10 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
          * Removes the attributes from the component.
          */
         removeAttrs() {
-            this.el.removeAttribute('r-data');
             this.el.removeAttribute('r-id');
-            this.el.removeAttribute('r-checksum');
-            this.el.removeAttribute('r-base-url');
+            this.el.removeAttribute('r-data');
         }
 
         /**
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen) el.addEventListener('click', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh('method', value);
+                    this.refresh(value);
                 });
 
                 // Remove attributes
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen) el.addEventListener('submit', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh('method', value);
+                    this.refresh(value);
                 });
 
                 // Remove attributes
@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen) el.addEventListener('focus', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh('method', value);
+                    this.refresh(value);
                 });
 
                 // Remove attributes
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen) el.addEventListener('blur', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh('method', value);
+                    this.refresh(value);
                 });
 
                 // Remove attributes
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen) el.addEventListener('mouseover', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh('method', value);
+                    this.refresh(value);
                 });
 
                 // Remove attributes
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen) el.addEventListener('mouseleave', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh('method', value);
+                    this.refresh(value);
                 });
 
                 // Remove attributes
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(listen) el.addEventListener('keydown', event => {
                     if(event.keyCode !== 13) return;
                     if(prevent) event.preventDefault();
-                    this.refresh('method', value);
+                    this.refresh(value);
                 });
 
                 // Remove attributes
@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(listen) el.addEventListener('keydown', event => {
                     if(event.keyCode !== 9) return;
                     if(prevent) event.preventDefault();
-                    this.refresh('method', value);
+                    this.refresh(value);
                 });
 
                 // Remove attributes
@@ -491,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(listen) {
                     if(repeatInterval) clearInterval(repeatInterval);
                     repeatInterval = setInterval(() => {
-                        this.refresh('method', value);
+                        this.refresh(value);
                     }, interval);
                 }
 
@@ -515,10 +515,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(timeout) {
                     if(timeoutInterval) clearTimeout(timeoutInterval);
                     timeoutInterval = setTimeout(() => {
-                        this.refresh('method', value);
+                        this.refresh(value);
                     }, timeout);
                 } else {
-                    this.refresh('method', value);
+                    this.refresh(value);
                 }
 
                 // Remove attributes
@@ -551,20 +551,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /**
          * Refreshes the component.
-         * @param {string} type Type of the AJAX call.
-         * @param {?string} extra Extra data to pass with the request.
+         * @param {?string} method Method call, if any.
          */
-        refresh(type = 'model', extra = null) {
+        refresh(method = null) {
             // Toggle loading elements
             this.toggleLoads(false);
 
             // Wrap request data
             let data = new FormData();
             data.append('id', this.id);
-            data.append('checksum', this.checksum);
-            data.append('type', type);
+            data.append('name', this.name);
             data.append('data', JSON.stringify(this.data));
-            data.append('extra', extra);
+            data.append('checksum', this.checksum);
+            if(method) data.append('method', method);
 
             // Append uploaded files, if any
             for(let key in this.files) {
@@ -611,8 +610,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     component.removeInits();
                 } else if(xhr.status == 403) {
                     // Page expired handler
-                    if(window.reactables.expiredHandler) {
-                        window.reactables['expiredHandler']();
+                    if(document.reactables.expiredHandler) {
+                        document.reactables['expiredHandler'](xhr.responseText, xhr.status);
                     } else {
                         window.reactables.showExpired();
                     }
@@ -675,6 +674,15 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         find(id) {
             return this.components.find(c => c.id == id);
+        }
+
+        /**
+         * Finds components by their names.
+         * @param {string} name Component name to search.
+         * @returns {ReactablesComponent[]} Returns a list of components if found.
+         */
+        findName(name) {
+            return this.components.filter(c => c.name == name);
         }
 
         /**

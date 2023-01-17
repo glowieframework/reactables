@@ -53,6 +53,12 @@
         protected $query = [];
 
         /**
+         * Component id.
+         * @var string
+         */
+        private $id;
+
+        /**
          * Validator instance.
          * @var Validator
          */
@@ -70,6 +76,15 @@
         final public function initializeComponent(){
             $this->component = new Element();
             $this->validator = new Validator();
+            $this->id = Util::uniqueToken();
+        }
+
+        /**
+         * Sets the component id.
+         * @var string $id Component id to set.
+         */
+        final public function setComponentId(string $id){
+            $this->id = $id;
         }
 
         /**
@@ -105,6 +120,7 @@
 
         /**
          * Builds the query string parameters.
+         * @return string Returns the query string URL.
          */
         final public function buildQueryString(){
             if(empty($this->query)) return null;
@@ -128,7 +144,7 @@
          */
         final public function magicSet(string $call){
             if(!preg_match('~\$set\(\'(.+)\' *, *\'(.+)\'\)~', $call, $matches)) return;
-            if(count($matches) == 3) $this->component->set($matches[1], $matches[2]);
+            $this->component->set($matches[1], $matches[2]);
         }
 
         /**
@@ -137,12 +153,10 @@
          */
         final public function magicToggle(string $call){
             if(!preg_match('~\$toggle\(\'(.+)\'\)~', $call, $matches)) return;
-            if(count($matches) == 2){
-                if(!filter_var($this->component->get($matches[1], false), FILTER_VALIDATE_BOOLEAN)){
-                    $this->component->set($matches[1], true);
-                }else{
-                    $this->component->set($matches[1], false);
-                }
+            if(!filter_var($this->component->get($matches[1], false), FILTER_VALIDATE_BOOLEAN)){
+                $this->component->set($matches[1], true);
+            }else{
+                $this->component->set($matches[1], false);
             }
         }
 
@@ -223,7 +237,7 @@
                     foreach($files as $file){
                         if(!empty($file->error)) continue;
                         $target = rtrim(Config::get('reactables.tmp_path', Util::location('storage/reactables')), '/\\');
-                        if(!is_dir($target)) mkdir($target, 0755, true);
+                        if(!is_dir($target)) @mkdir($target, 0755, true);
                         if(!is_writable($target)) throw new FileException('Directory "' . $target . '" is invalid or not writable');
 
                         // Validate the file
@@ -276,7 +290,7 @@
 
             // Move the temp file to the target folder
             $target = $directory . DIRECTORY_SEPARATOR . ($filename ?? $file->name);
-            $result = rename($file->tmp_name, $target);
+            $result = @rename($file->tmp_name, $target);
             return $result ? $target : false;
         }
 
@@ -286,17 +300,19 @@
          * @return string Returns the pumped component HTML.
          */
         private function putData(string $content){
-            // Get component id and checksum
-            $id = Util::encryptString(Util::classname($this));
-            $checksum = $this->checksum();
-
             // Parse component data
-            $json = htmlspecialchars($this->getComponentData());
+            $id = $this->id;
+            $data = [
+                'name' => Util::classname($this),
+                'data' => $this->getComponentData(),
+                'checksum' => $this->checksum(),
+                'base_url' => Util::baseUrl()
+            ];
 
             // Pumps the content
-            $content = preg_replace_callback('~<([^\s]+)(.*)>~', function($matches) use($id, $checksum, $json){
-                return sprintf('<%s%s r-id="%s" r-checksum="%s" r-data="%s" r-base-url="%s">',
-                    $matches[1], $matches[2], $id, $checksum, $json, Util::baseUrl()
+            $content = preg_replace_callback('~<([^\s]+)(.*)>~', function($matches) use($id, $data){
+                return sprintf('<%s%s r-id="%s" r-data="%s">',
+                    $matches[1], $matches[2], $id, htmlspecialchars(Util::jsonEncode($data))
                 );
             }, $content, 1);
 

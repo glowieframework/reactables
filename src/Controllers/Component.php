@@ -23,38 +23,36 @@
         public function component(){
             // Get request data
             $data = $this->post;
-            if(empty($data->id)) return;
+            if(empty($data->name)) return;
 
             // Instantiate component class
-            $name = Util::pascalCase(Util::decryptString($data->id) ?? '');
-            if(empty($name)) throw new ComponentException('Invalid component identifier');
+            $name = Util::pascalCase($data->name);
             $class = '\Glowie\Controllers\Components\\' . $name;
             if(!class_exists($class)) throw new ComponentException('Component "' . $name . '" does not exist');
             $class = new $class;
 
             // Initialize component data
             $class->initializeComponent();
-            $class->fillComponentParams((array)json_decode($data->data));
+            if(!empty($data->id)) $class->setComponentId($data->id);
+            if(!empty($data->data)) $class->fillComponentParams((array)json_decode($data->data));
 
             // Handle uploads
-            $class->handleUploads();
+            if(!empty($_FILES)) $class->handleUploads();
 
             // Call update method
             if(is_callable([$class, 'update'])) $class->update();
 
             // Check method call
-            if($data->type == 'method' && !empty($data->extra)){
-                $method = $data->extra;
-
+            if(!empty($data->method)){
                 // Check magic actions
-                if($method == '$refresh()'){
+                if($data->method == '$refresh()'){
                     // Do nothing, refresh the component only
-                }else if(Util::startsWith($method, '$set(')){
-                    $class->magicSet($method);
-                }else if(Util::startsWith($method, '$toggle(')){
-                    $class->magicToggle($method);
+                }else if(Util::startsWith($data->method, '$set(')){
+                    $class->magicSet($data->method);
+                }else if(Util::startsWith($data->method, '$toggle(')){
+                    $class->magicToggle($data->method);
                 }else{
-                    eval('$class->' . $method . ';');
+                    eval('$class->' . $data->method . ';');
                 }
             }
 
