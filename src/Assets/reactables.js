@@ -42,10 +42,22 @@ document.addEventListener('DOMContentLoaded', () => {
         baseUrl;
 
         /**
+         * Component original route.
+         * @type {string}
+         */
+        route;
+
+        /**
          * Uploaded files.
          * @type {Object}
          */
-        files;
+        files = {};
+
+        /**
+         * New elements.
+         * @type {Element[]}
+         */
+        newEls = [];
 
         /**
          *
@@ -60,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.data = JSON.parse(data.data);
             this.checksum = data.checksum;
             this.baseUrl = data.base_url;
-            this.files = {};
+            this.route = data.route;
 
             // Remove attributes
             this.removeAttrs();
@@ -176,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(value !== undefined) model.value = value;
 
                 // Set binding event
-                if(listen) model.addEventListener('input', () => {
+                if(listen || this.newEls.includes(model)) model.addEventListener('input', () => {
                     this.data[name] = model.value;
                     if(!lazy) {
                         if(debounce) {
@@ -224,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Set binding event
-                if(listen) model.addEventListener('input', () => {
+                if(listen || this.newEls.includes(model)) model.addEventListener('input', () => {
                     // Array
                     if(name.endsWith('[]')) {
                         if(!Array.isArray(this.data[rawName])) this.data[rawName] = [];
@@ -285,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Set binding event
-                if(listen) model.addEventListener('input', () => {
+                if(listen || this.newEls.includes(model)) model.addEventListener('input', () => {
                     // Array
                     if(name.endsWith('[]')) {
                         this.data[rawName] = [];
@@ -317,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let debounceTimeout = null;
 
                 // Set binding event
-                if(listen) model.addEventListener('input', () => {
+                if(listen || this.newEls.includes(model)) model.addEventListener('input', () => {
                     this.files[name] = model.files;
                     if(!lazy) {
                         if(debounce) {
@@ -350,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
-                if(listen) el.addEventListener('click', event => {
+                if(listen || this.newEls.includes(el)) el.addEventListener('click', event => {
                     if(prevent) event.preventDefault();
                     this.refresh(value);
                 });
@@ -367,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
-                if(listen) el.addEventListener('submit', event => {
+                if(listen || this.newEls.includes(el)) el.addEventListener('submit', event => {
                     if(prevent) event.preventDefault();
                     this.refresh(value);
                 });
@@ -384,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
-                if(listen) el.addEventListener('focus', event => {
+                if(listen || this.newEls.includes(el)) el.addEventListener('focus', event => {
                     if(prevent) event.preventDefault();
                     this.refresh(value);
                 });
@@ -401,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
-                if(listen) el.addEventListener('blur', event => {
+                if(listen || this.newEls.includes(el)) el.addEventListener('blur', event => {
                     if(prevent) event.preventDefault();
                     this.refresh(value);
                 });
@@ -418,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
-                if(listen) el.addEventListener('mouseover', event => {
+                if(listen || this.newEls.includes(el)) el.addEventListener('mouseover', event => {
                     if(prevent) event.preventDefault();
                     this.refresh(value);
                 });
@@ -435,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
-                if(listen) el.addEventListener('mouseleave', event => {
+                if(listen || this.newEls.includes(el)) el.addEventListener('mouseleave', event => {
                     if(prevent) event.preventDefault();
                     this.refresh(value);
                 });
@@ -452,8 +464,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
-                if(listen) el.addEventListener('keydown', event => {
-                    if(event.keyCode !== 13) return;
+                if(listen || this.newEls.includes(el)) el.addEventListener('keydown', event => {
+                    if(event.key !== 'Enter') return;
                     if(prevent) event.preventDefault();
                     this.refresh(value);
                 });
@@ -470,8 +482,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 let prevent = el.hasAttribute('r-prevent');
 
                 // Set binding event
-                if(listen) el.addEventListener('keydown', event => {
-                    if(event.keyCode !== 9) return;
+                if(listen || this.newEls.includes(el)) el.addEventListener('keydown', event => {
+                    if(event.key !== 'Tab') return;
                     if(prevent) event.preventDefault();
                     this.refresh(value);
                 });
@@ -494,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let repeatInterval = null;
 
                 // Set interval
-                if(listen) {
+                if(listen || this.newEls.includes(el)) {
                     if(repeatInterval) clearInterval(repeatInterval);
                     repeatInterval = setInterval(() => {
                         this.refresh(value);
@@ -569,6 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data.append('name', this.name);
             data.append('data', JSON.stringify(this.data));
             data.append('checksum', this.checksum);
+            data.append('route', this.route);
             if(method) data.append('method', method);
 
             // Append uploaded files, if any
@@ -582,38 +595,64 @@ document.addEventListener('DOMContentLoaded', () => {
             let xhr = new XMLHttpRequest();
             let component = this;
             xhr.responseType = 'text';
+            xhr.withCredentials = true;
             xhr.open('POST', this.baseUrl + 'reactables/component', true);
+            xhr.setRequestHeader('X-Reactables', true);
 
             // Upload progress event
-            xhr.upload.onprogress = function(e) {
+            xhr.upload.onprogress = e => {
                 let percent = Math.round((e.loaded / e.total) * 100);
                 let event = new CustomEvent('reactables-upload-progress', {detail: percent});
                 component.el.dispatchEvent(event);
             }
 
             // Upload success event
-            xhr.upload.onload = function() {
+            xhr.upload.onload = () => {
                 let event = new Event('reactables-upload-success');
                 component.el.dispatchEvent(event);
             }
 
             // Upload error event
-            xhr.upload.onerror = function() {
+            xhr.upload.onerror = () => {
                 let event = new Event('reactables-upload-failed');
                 component.el.dispatchEvent(event);
             }
 
             // Load event
-            xhr.onload = function() {
+            xhr.onload = () => {
                 if(xhr.status == 200) {
                     // Parse response
                     let response = JSON.parse(xhr.responseText);
 
                     // Redirect
-                    if(response.redirect) return document.location = response.redirect;
+                    if(response.redirect) return document.location.href = response.redirect;
 
                     // Morphs the HTML
-                    morphdom(component.el, response.html);
+                    component.newEls = [];
+                    morphdom(component.el, response.html, {
+
+                        // Parse new elements
+                        onNodeAdded: node => {
+                            if(node.hasAttribute('r-id')) {
+                                document.reactables.components.push(new ReactablesComponent(node));
+                                node.skipAddingChildren = true;
+                            } else {
+                                component.newEls.push(node);
+                            }
+                        },
+
+                        // Return unique element key
+                        getNodeKey: node => {
+                            let key = node.getAttribute('r-key');
+                            return key ? key : node.id;
+                        },
+
+                        // Prevent virtual DOM problems
+                        onBeforeElUpdated: (from, to) => {
+                            return !from.isEqualNode(to);
+                        }
+
+                    });
 
                     // Parses the new data
                     component.data = JSON.parse(response.data);
@@ -651,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Error event
-            xhr.onerror = function() {
+            xhr.onerror = () => {
                 if(document.reactables.errorHandler) {
                     document.reactables['errorHandler'](xhr.responseText, xhr.status);
                 } else {
@@ -679,13 +718,19 @@ document.addEventListener('DOMContentLoaded', () => {
          * Error handler.
          * @type {?Function}
          */
-        errorHandler = null;
+        errorHandler;
 
         /**
          * Page expired handler.
          * @type {?Function}
          */
-        expiredHandler = null;
+        expiredHandler;
+
+        /**
+         * Previous body overflow setting.
+         * @var {string}
+         */
+        overflow;
 
         /**
          * Initializes the Reactables core.
@@ -749,10 +794,46 @@ document.addEventListener('DOMContentLoaded', () => {
          * @param {string} error Error HTML.
          */
         showError(error) {
-            let errorContainer = document.createElement('div');
-            errorContainer.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;z-index:999999;background:rgba(0,0,0,.7);overflow:auto;';
-            errorContainer.innerHTML = error;
-            document.body.appendChild(errorContainer);
+            // Create error page
+            let html = document.createElement('html');
+            html.innerHTML = error;
+
+            // Create error modal
+            let modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;inset:0;padding:30px;z-index:999999;background:rgba(0,0,0,.7);';
+
+            // Create error iframe
+            let iframe = document.createElement('iframe');
+            iframe.style.cssText = 'width:100%;height:100%;border-radius:5px;';
+
+            // Append to body
+            modal.appendChild(iframe);
+            document.body.prepend(modal);
+
+            // Saves the current overflow state
+            this.overflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+
+            // Sets the iframe content
+            iframe.contentWindow.document.open();
+            iframe.contentWindow.document.write(html.outerHTML);
+            iframe.contentWindow.document.close();
+
+            // Hide modal on click outside
+            modal.addEventListener('click', () => {
+                modal.remove();
+                document.body.style.overflow = this.overflow;
+            });
+
+            // Hide modal on Esc key pressed
+            modal.setAttribute('tabindex', 0);
+            modal.addEventListener('keydown', e => {
+                if(e.key === 'Escape') {
+                    modal.remove();
+                    document.body.style.overflow = this.overflow;
+                }
+            });
+            modal.focus();
         }
 
         /**

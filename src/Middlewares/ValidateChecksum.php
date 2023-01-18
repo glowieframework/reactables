@@ -20,6 +20,9 @@
          * @return bool Should return true on success or false on fail.
          */
         public function handle(){
+            // Validates the header
+            if(!$this->request->getHeader('X-Reactables')) return false;
+
             // Retrieves the token from POST field
             $token = $this->post->checksum;
 

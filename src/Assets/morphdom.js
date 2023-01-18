@@ -7,6 +7,12 @@
 
     var DOCUMENT_FRAGMENT_NODE = 11;
 
+    function callHook(hook, ...params) {
+        // Don't call hook on non-"DOMElement" elements.
+        if(typeof params[0].hasAttribute !== 'function') return;
+        return hook(...params);
+    }
+
     function morphAttrs(fromNode, toNode) {
         var toNodeAttrs = toNode.attributes;
         var attr;
@@ -351,7 +357,7 @@
 
                         var key = undefined;
 
-                        if(skipKeyedNodes && (key = getNodeKey(curChild))) {
+                        if(skipKeyedNodes && (key = callHook(getNodeKey, curChild))) {
                             // If we are skipping keyed nodes then we add the key
                             // to a list so that it can be handled at the very end.
                             addKeyedRemoval(key);
@@ -359,7 +365,7 @@
                             // Only report the node as discarded if it is not keyed. We do this because
                             // at the end we loop through all keyed elements that were unmatched
                             // and then discard them in one final pass.
-                            onNodeDiscarded(curChild);
+                            callHook(onNodeDiscarded, curChild);
                             if(curChild.firstChild) {
                                 walkDiscardedChildNodes(curChild, skipKeyedNodes);
                             }
@@ -379,7 +385,7 @@
              * @return {undefined}
              */
             function removeNode(node, parentNode, skipKeyedNodes) {
-                if(onBeforeNodeDiscarded(node) === false) {
+                if(callHook(onBeforeNodeDiscarded, node) === false) {
                     return;
                 }
 
@@ -387,43 +393,15 @@
                     parentNode.removeChild(node);
                 }
 
-                onNodeDiscarded(node);
+                callHook(onNodeDiscarded, node);
                 walkDiscardedChildNodes(node, skipKeyedNodes);
             }
-
-            // // TreeWalker implementation is no faster, but keeping this around in case this changes in the future
-            // function indexTree(root) {
-            //     var treeWalker = document.createTreeWalker(
-            //         root,
-            //         NodeFilter.SHOW_ELEMENT);
-            //
-            //     var el;
-            //     while((el = treeWalker.nextNode())) {
-            //         var key = getNodeKey(el);
-            //         if (key) {
-            //             fromNodesLookup[key] = el;
-            //         }
-            //     }
-            // }
-
-            // // NodeIterator implementation is no faster, but keeping this around in case this changes in the future
-            //
-            // function indexTree(node) {
-            //     var nodeIterator = document.createNodeIterator(node, NodeFilter.SHOW_ELEMENT);
-            //     var el;
-            //     while((el = nodeIterator.nextNode())) {
-            //         var key = getNodeKey(el);
-            //         if (key) {
-            //             fromNodesLookup[key] = el;
-            //         }
-            //     }
-            // }
 
             function indexTree(node) {
                 if(node.nodeType === ELEMENT_NODE || node.nodeType === DOCUMENT_FRAGMENT_NODE$1) {
                     var curChild = node.firstChild;
                     while(curChild) {
-                        var key = getNodeKey(curChild);
+                        var key = callHook(getNodeKey, curChild);
                         if(key) {
                             fromNodesLookup[key] = curChild;
                         }
@@ -439,13 +417,15 @@
             indexTree(fromNode);
 
             function handleNodeAdded(el) {
-                onNodeAdded(el);
+                callHook(onNodeAdded, el);
+
+                if(el.skipAddingChildren) return;
 
                 var curChild = el.firstChild;
                 while(curChild) {
                     var nextSibling = curChild.nextSibling;
 
-                    var key = getNodeKey(curChild);
+                    var key = callHook(getNodeKey, curChild);
                     if(key) {
                         var unmatchedFromEl = fromNodesLookup[key];
                         // if we find a duplicate #id node in cache, replace `el` with cache value
@@ -472,7 +452,7 @@
                 // to be removed
                 while(curFromNodeChild) {
                     var fromNextSibling = curFromNodeChild.nextSibling;
-                    if((curFromNodeKey = getNodeKey(curFromNodeChild))) {
+                    if((curFromNodeKey = callHook(getNodeKey, curFromNodeChild))) {
                         // Since the node is keyed it might be matched up later so we defer
                         // the actual removal to later
                         addKeyedRemoval(curFromNodeKey);
@@ -486,7 +466,7 @@
             }
 
             function morphEl(fromEl, toEl, childrenOnly) {
-                var toElKey = getNodeKey(toEl);
+                var toElKey = callHook(getNodeKey, toEl);
 
                 if(toElKey) {
                     // If an element with an ID is being morphed then it will be in the final
@@ -496,16 +476,18 @@
 
                 if(!childrenOnly) {
                     // optional
-                    if(onBeforeElUpdated(fromEl, toEl) === false) {
+                    if(callHook(onBeforeElUpdated, fromEl, toEl) === false) {
                         return;
                     }
 
-                    // update attributes on original DOM element first
-                    morphAttrs(fromEl, toEl);
-                    // optional
-                    onElUpdated(fromEl);
+                    if(!fromEl.skipElUpdatingButStillUpdateChildren) {
+                        morphAttrs(fromEl, toEl);
+                    }
 
-                    if(onBeforeElChildrenUpdated(fromEl, toEl) === false) {
+                    // optional
+                    callHook(onElUpdated, fromEl);
+
+                    if(callHook(onBeforeElChildrenUpdated, fromEl, toEl) === false) {
                         return;
                     }
                 }
@@ -513,7 +495,9 @@
                 if(fromEl.nodeName !== 'TEXTAREA') {
                     morphChildren(fromEl, toEl);
                 } else {
-                    specialElHandlers.TEXTAREA(fromEl, toEl);
+                    if(fromEl.innerHTML != toEl.innerHTML) {
+                        specialElHandlers.TEXTAREA(fromEl, toEl);
+                    }
                 }
             }
 
@@ -530,19 +514,19 @@
                 // walk the children
                 outer: while(curToNodeChild) {
                     toNextSibling = curToNodeChild.nextSibling;
-                    curToNodeKey = getNodeKey(curToNodeChild);
+                    curToNodeKey = callHook(getNodeKey, curToNodeChild);
 
                     // walk the fromNode children all the way through
                     while(curFromNodeChild) {
                         fromNextSibling = curFromNodeChild.nextSibling;
 
-                        if(curToNodeChild.isEqualNode && curToNodeChild.isEqualNode(curFromNodeChild)) {
+                        if(curToNodeChild.isSameNode && curToNodeChild.isSameNode(curFromNodeChild)) {
                             curToNodeChild = toNextSibling;
                             curFromNodeChild = fromNextSibling;
                             continue outer;
                         }
 
-                        curFromNodeKey = getNodeKey(curFromNodeChild);
+                        curFromNodeKey = callHook(getNodeKey, curFromNodeChild);
 
                         var curFromNodeType = curFromNodeChild.nodeType;
 
@@ -605,11 +589,17 @@
 
                                 isCompatible = isCompatible !== false && compareNodeNames(curFromNodeChild, curToNodeChild);
                                 if(isCompatible) {
-                                    // We found compatible DOM elements so transform
-                                    // the current "from" node to match the current
-                                    // target DOM node.
-                                    // MORPH
-                                    morphEl(curFromNodeChild, curToNodeChild);
+                                    if(!curToNodeChild.isEqualNode(curFromNodeChild)
+                                        && curToNodeChild.nextElementSibling
+                                        && curToNodeChild.nextElementSibling.isEqualNode(curFromNodeChild)) {
+                                        isCompatible = false;
+                                    } else {
+                                        // We found compatible DOM elements so transform
+                                        // the current "from" node to match the current
+                                        // target DOM node.
+                                        // MORPH
+                                        morphEl(curFromNodeChild, curToNodeChild);
+                                    }
                                 }
 
                             } else if(curFromNodeType === TEXT_NODE || curFromNodeType == COMMENT_NODE) {
@@ -632,20 +622,29 @@
                             continue outer;
                         }
 
-                        // No compatible match so remove the old node from the DOM and continue trying to find a
-                        // match in the original DOM. However, we only do this if the from node is not keyed
-                        // since it is possible that a keyed node might match up with a node somewhere else in the
-                        // target tree and we don't want to discard it just yet since it still might find a
-                        // home in the final DOM tree. After everything is done we will remove any keyed nodes
-                        // that didn't find a home
-                        if(curFromNodeKey) {
-                            // Since the node is keyed it might be matched up later so we defer
-                            // the actual removal to later
-                            addKeyedRemoval(curFromNodeKey);
+                        if(curToNodeChild.nextElementSibling && curToNodeChild.nextElementSibling.isEqualNode(curFromNodeChild)) {
+                            const nodeToBeAdded = curToNodeChild.cloneNode(true)
+                            fromEl.insertBefore(nodeToBeAdded, curFromNodeChild)
+                            handleNodeAdded(nodeToBeAdded)
+                            curToNodeChild = curToNodeChild.nextElementSibling.nextSibling;
+                            curFromNodeChild = fromNextSibling;
+                            continue outer;
                         } else {
-                            // NOTE: we skip nested keyed nodes from being removed since there is
-                            //       still a chance they will be matched up later
-                            removeNode(curFromNodeChild, fromEl, true /* skip keyed nodes */);
+                            // No compatible match so remove the old node from the DOM and continue trying to find a
+                            // match in the original DOM. However, we only do this if the from node is not keyed
+                            // since it is possible that a keyed node might match up with a node somewhere else in the
+                            // target tree and we don't want to discard it just yet since it still might find a
+                            // home in the final DOM tree. After everything is done we will remove any keyed nodes
+                            // that didn't find a home
+                            if(curFromNodeKey) {
+                                // Since the node is keyed it might be matched up later so we defer
+                                // the actual removal to later
+                                addKeyedRemoval(curFromNodeKey);
+                            } else {
+                                // NOTE: we skip nested keyed nodes from being removed since there is
+                                //       still a chance they will be matched up later
+                                removeNode(curFromNodeChild, fromEl, true /* skip keyed nodes */);
+                            }
                         }
 
                         curFromNodeChild = fromNextSibling;
@@ -660,7 +659,7 @@
                         // MORPH
                         morphEl(matchingFromEl, curToNodeChild);
                     } else {
-                        var onBeforeNodeAddedResult = onBeforeNodeAdded(curToNodeChild);
+                        var onBeforeNodeAddedResult = callHook(onBeforeNodeAdded, curToNodeChild);
                         if(onBeforeNodeAddedResult !== false) {
                             if(onBeforeNodeAddedResult) {
                                 curToNodeChild = onBeforeNodeAddedResult;
@@ -696,7 +695,7 @@
                 if(morphedNodeType === ELEMENT_NODE) {
                     if(toNodeType === ELEMENT_NODE) {
                         if(!compareNodeNames(fromNode, toNode)) {
-                            onNodeDiscarded(fromNode);
+                            callHook(onNodeDiscarded, fromNode);
                             morphedNode = moveChildren(fromNode, createElementNS(toNode.nodeName, toNode.namespaceURI));
                         }
                     } else {
@@ -720,9 +719,9 @@
             if(morphedNode === toNode) {
                 // The "to node" was not compatible with the "from node" so we had to
                 // toss out the "from node" and use the "to node"
-                onNodeDiscarded(fromNode);
+                callHook(onNodeDiscarded, fromNode);
             } else {
-                if(toNode.isEqualNode && toNode.isEqualNode(morphedNode)) {
+                if(toNode.isSameNode && toNode.isSameNode(morphedNode)) {
                     return;
                 }
 

@@ -8,6 +8,7 @@
     use Glowie\Core\Exception\FileException;
     use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Core\Tools\Validator;
+    use Glowie\Core\Http\Rails;
     use Config;
     use Util;
 
@@ -303,6 +304,7 @@
                 'name' => Util::classname($this),
                 'data' => $this->getComponentData(),
                 'checksum' => $this->checksum(),
+                'route' => Util::encryptString(Rails::getCurrentRoute()),
                 'base_url' => Util::baseUrl()
             ];
 
