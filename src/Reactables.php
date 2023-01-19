@@ -10,6 +10,7 @@
     use Glowie\Plugins\Reactables\Controllers\Component;
     use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
+    use Glowie\Plugins\Reactables\Middlewares\DispatchMiddlewares;
     use Util;
 
     class Reactables extends Plugin{
@@ -27,7 +28,7 @@
          */
         public function register(){
             // Register the AJAX and assets routes
-            Rails::addProtectedRoute('reactables/component', ValidateChecksum::class, Component::class, 'component', 'post', 'reactables-component-route');
+            Rails::addProtectedRoute('reactables/component', [ValidateChecksum::class, DispatchMiddlewares::class], Component::class, 'component', 'post', 'reactables-component-route');
             Rails::addRoute('reactables/assets.js', Component::class, 'assets', [], 'reactables-assets-route');
 
             // Register the Skeltch directives

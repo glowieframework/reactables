@@ -72,6 +72,12 @@
         private $redirectTarget = '';
 
         /**
+         * Array of dispatched events.
+         * @var array
+         */
+        private $events = [];
+
+        /**
          * Initializes the component core.
          */
         final public function initializeComponent(){
@@ -293,6 +299,26 @@
         }
 
         /**
+         * Dispatches an event in the component.
+         * @param string $name Name of the event to dispatch.
+         * @param array $params (Optional) Array of params to pass with the event.
+         */
+        final protected function dispatchEvent(string $name, array $params = []){
+            $this->events[] = [
+                'name' => $name,
+                'params' => array_values($params)
+            ];
+        }
+
+        /**
+         * Returns an array of the dispatched events and their params.
+         * @return array Array of dispatched events.
+         */
+        final public function getDispatchedEvents(){
+            return $this->events;
+        }
+
+        /**
          * Pumps the component with the data attributes.
          * @param string $content Component HTML content.
          * @return string Returns the pumped component HTML.
@@ -341,3 +367,5 @@
         public abstract function make();
 
     }
+
+?>

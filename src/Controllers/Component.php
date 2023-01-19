@@ -4,8 +4,6 @@
     use Glowie\Core\Http\Controller;
     use Glowie\Core\View\Buffer;
     use Glowie\Plugins\Reactables\Exception\ComponentException;
-    use Glowie\Core\Http\Rails;
-    use Exception;
     use Util;
 
     /**
@@ -25,18 +23,13 @@
         public function component(){
             // Get request data
             $data = $this->post;
-            if(empty($data->name) || empty($data->route)) return;
+            if(empty($data->name)) return;
 
             // Instantiate component class
             $name = Util::pascalCase($data->name);
             $class = '\Glowie\Controllers\Components\\' . $name;
             if(!class_exists($class)) throw new ComponentException('Component "' . $name . '" does not exist');
             $class = new $class;
-
-            // Dispatch route middlewares
-            $route = Rails::getRoute(Util::decryptString($data->route) ?? '');
-            if(!$route) throw new Exception('Route name "' . $route . '" does not match any existing route');
-            $this->dispatchMiddlewares($route);
 
             // Initialize component data
             $class->initializeComponent();
@@ -75,7 +68,8 @@
             $this->response->setJson([
                 'html' => $html,
                 'query' => $class->buildQueryString(),
-                'data' => $class->getComponentData()
+                'data' => $class->getComponentData(),
+                'events' => $class->getDispatchedEvents()
             ]);
         }
 
@@ -85,10 +79,6 @@
         public function assets(){
             $this->response->setContentType('text/javascript');
             echo file_get_contents(__DIR__ . '/../Assets/morphdom.min.js') . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');;
-        }
-
-        private function dispatchMiddlewares(array $route){
-
         }
 
     }

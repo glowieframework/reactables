@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set initial value
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
-                let debounce = model.getAttribute('r-debounce');
+                let debounce = model.getAttribute('r-debounce') || 500;
                 let debounceTimeout = null;
                 let value = this.data[name];
                 if(value !== undefined) model.value = value;
@@ -194,10 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         if(debounce) {
                             if(debounceTimeout) clearTimeout(debounceTimeout);
                             debounceTimeout = setTimeout(() => {
-                                this.refresh();
+                                window.reactables.refresh(this, model);
                             }, debounce);
                         } else {
-                            this.refresh();
+                            window.reactables.refresh(this, model);
                         }
                     }
                 });
@@ -261,10 +261,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         if(debounce) {
                             if(debounceTimeout) clearTimeout(debounceTimeout);
                             debounceTimeout = setTimeout(() => {
-                                this.refresh();
+                                window.reactables.refresh(this, model);
                             }, debounce);
                         } else {
-                            this.refresh();
+                            window.reactables.refresh(this, model);
                         }
                     }
                 });
@@ -312,10 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         if(debounce) {
                             if(debounceTimeout) clearTimeout(debounceTimeout);
                             debounceTimeout = setTimeout(() => {
-                                this.refresh();
+                                window.reactables.refresh(this, model);
                             }, debounce);
                         } else {
-                            this.refresh();
+                            window.reactables.refresh(this, model);
                         }
                     }
                 });
@@ -335,10 +335,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         if(debounce) {
                             if(debounceTimeout) clearTimeout(debounceTimeout);
                             debounceTimeout = setTimeout(() => {
-                                this.refresh();
+                                window.reactables.refresh(this, model);
                             }, debounce);
                         } else {
-                            this.refresh();
+                            window.reactables.refresh(this, model);
                         }
                     }
                 });
@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen || this.newEls.includes(el)) el.addEventListener('click', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 });
 
                 // Remove attributes
@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen || this.newEls.includes(el)) el.addEventListener('submit', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 });
 
                 // Remove attributes
@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen || this.newEls.includes(el)) el.addEventListener('focus', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 });
 
                 // Remove attributes
@@ -415,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen || this.newEls.includes(el)) el.addEventListener('blur', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 });
 
                 // Remove attributes
@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen || this.newEls.includes(el)) el.addEventListener('mouseover', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 });
 
                 // Remove attributes
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set binding event
                 if(listen || this.newEls.includes(el)) el.addEventListener('mouseleave', event => {
                     if(prevent) event.preventDefault();
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 });
 
                 // Remove attributes
@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(listen || this.newEls.includes(el)) el.addEventListener('keydown', event => {
                     if(event.key !== 'Enter') return;
                     if(prevent) event.preventDefault();
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 });
 
                 // Remove attributes
@@ -485,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(listen || this.newEls.includes(el)) el.addEventListener('keydown', event => {
                     if(event.key !== 'Tab') return;
                     if(prevent) event.preventDefault();
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 });
 
                 // Remove attributes
@@ -509,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(listen || this.newEls.includes(el)) {
                     if(repeatInterval) clearInterval(repeatInterval);
                     repeatInterval = setInterval(() => {
-                        this.refresh(value);
+                        window.reactables.refresh(this, el, value);
                     }, interval);
                 }
 
@@ -533,10 +533,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(timeout) {
                     if(timeoutInterval) clearTimeout(timeoutInterval);
                     timeoutInterval = setTimeout(() => {
-                        this.refresh(value);
+                        window.reactables.refresh(this, el, value);
                     }, timeout);
                 } else {
-                    this.refresh(value);
+                    window.reactables.refresh(this, el, value);
                 }
 
                 // Remove attributes
@@ -561,145 +561,23 @@ document.addEventListener('DOMContentLoaded', () => {
          * @param {?string} query Query string.
          */
         parseQuery(query) {
-            let url = document.location.pathname;
+            let url = location.pathname;
             if(query && query.length) url += '?' + query;
-            if(document.location.hash) url += document.location.hash;
-            if(url != document.location.href) window.history.pushState({}, '', url);
+            if(location.hash) url += location.hash;
+            if(url != location.href) history.pushState({}, '', url);
         }
 
         /**
-         * Refreshes the component.
-         * @param {?string} method Method call, if any.
+         * Dispatches component events.
+         * @param {Object[]} events Array of events to dispatch.
          */
-        refresh(method = null) {
-            // Toggle loading elements
-            this.toggleLoads(false);
-
-            // Wrap request data
-            let data = new FormData();
-            data.append('id', this.id);
-            data.append('name', this.name);
-            data.append('data', JSON.stringify(this.data));
-            data.append('checksum', this.checksum);
-            data.append('route', this.route);
-            if(method) data.append('method', method);
-
-            // Append uploaded files, if any
-            for(let key in this.files) {
-                Array.from(this.files[key]).forEach(file => {
-                    data.append(key + '[]', file);
-                });
-            }
-
-            // Create request
-            let xhr = new XMLHttpRequest();
-            let component = this;
-            xhr.responseType = 'text';
-            xhr.withCredentials = true;
-            xhr.open('POST', this.baseUrl + 'reactables/component', true);
-            xhr.setRequestHeader('X-Reactables', true);
-
-            // Upload progress event
-            xhr.upload.onprogress = e => {
-                let percent = Math.round((e.loaded / e.total) * 100);
-                let event = new CustomEvent('reactables-upload-progress', {detail: percent});
-                component.el.dispatchEvent(event);
-            }
-
-            // Upload success event
-            xhr.upload.onload = () => {
-                let event = new Event('reactables-upload-success');
-                component.el.dispatchEvent(event);
-            }
-
-            // Upload error event
-            xhr.upload.onerror = () => {
-                let event = new Event('reactables-upload-failed');
-                component.el.dispatchEvent(event);
-            }
-
-            // Load event
-            xhr.onload = () => {
-                if(xhr.status == 200) {
-                    // Parse response
-                    let response = JSON.parse(xhr.responseText);
-
-                    // Redirect
-                    if(response.redirect) return document.location.href = response.redirect;
-
-                    // Morphs the HTML
-                    component.newEls = [];
-                    morphdom(component.el, response.html, {
-
-                        // Parse new elements
-                        onNodeAdded: node => {
-                            if(node.hasAttribute('r-id')) {
-                                document.reactables.components.push(new ReactablesComponent(node));
-                                node.skipAddingChildren = true;
-                            } else {
-                                component.newEls.push(node);
-                            }
-                        },
-
-                        // Return unique element key
-                        getNodeKey: node => {
-                            let key = node.getAttribute('r-key');
-                            return key ? key : node.id;
-                        },
-
-                        // Prevent virtual DOM problems
-                        onBeforeElUpdated: (from, to) => {
-                            return !from.isEqualNode(to);
-                        }
-
-                    });
-
-                    // Parses the new data
-                    component.data = JSON.parse(response.data);
-                    component.files = {};
-
-                    // Remove attributes
-                    component.removeAttrs();
-
-                    // Bind stuff
-                    component.bind();
-
-                    // Parse query string
-                    component.parseQuery(response.query);
-
-                    // Toggle loading elements
-                    component.toggleLoads();
-
-                    // Remove inits
-                    component.removeInits();
-
-                    // Dispatch update event
-                    let event = new Event('reactables-update-success');
-                    component.el.dispatchEvent(event);
-                } else if(xhr.status == 403) {
-                    // Page expired handler
-                    if(document.reactables.expiredHandler) {
-                        document.reactables['expiredHandler'](xhr.responseText, xhr.status);
-                    } else {
-                        document.reactables.showExpired();
-                    }
-                } else {
-                    // Error
-                    xhr.onerror();
+        dispatchEvents(events) {
+            if(!events || !events.length) return;
+            events.forEach(event => {
+                if(window.reactables.listeners[event.name]) {
+                    window.reactables.listeners[event.name](...event.params);
                 }
-            }
-
-            // Error event
-            xhr.onerror = () => {
-                if(document.reactables.errorHandler) {
-                    document.reactables['errorHandler'](xhr.responseText, xhr.status);
-                } else {
-                    document.reactables.showError(xhr.responseText);
-                }
-            }
-
-            // Perform request
-            xhr.send(data);
+            });
         }
     }
 
@@ -713,6 +591,12 @@ document.addEventListener('DOMContentLoaded', () => {
          * @type {ReactablesComponent[]}
          */
         components = [];
+
+        /**
+         * Event listeners.
+         * @type {Object}
+         */
+        listeners = {};
 
         /**
          * Error handler.
@@ -764,12 +648,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         /**
-         * Finds components by their names.
-         * @param {string} name Component name to search.
-         * @returns {ReactablesComponent[]} Returns a list of components if found.
+         * Sets a custom event listener.
+         * @param {string} eventName Custom event name to listen.
+         * @param {Function} callback Listener function.
          */
-        findName(name) {
-            return this.components.filter(c => c.name == name);
+        on(eventName, callback) {
+            this.listeners[eventName] = callback;
         }
 
         /**
@@ -785,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Sets a custom Page Expired error handler.
          * @param {Function} callback Custom page expired handler function.
          */
-        onExpired(callback) {
+        onPageExpired(callback) {
             this.expiredHandler = callback;
         }
 
@@ -841,18 +725,164 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         showExpired() {
             if(confirm('This page has expired.\nWould you like to refresh the page?')) {
-                document.location.reload();
+                location.reload();
             }
+        }
+
+        /**
+         * Refreshes a component.
+         * @param {ReactablesComponent} component Component to be refreshed.
+         * @param {Element} el Element that called the refresh.
+         * @param {?string} method Method call, if any.
+         */
+        refresh(component, el, method = null) {
+            // Toggle loading elements
+            component.toggleLoads(false);
+
+            // Wrap request data
+            let data = new FormData();
+            data.append('id', component.id);
+            data.append('name', component.name);
+            data.append('data', JSON.stringify(component.data));
+            data.append('checksum', component.checksum);
+            data.append('route', component.route);
+            if(method) data.append('method', method);
+
+            // Append uploaded files, if any
+            for(let key in component.files) {
+                Array.from(component.files[key]).forEach(file => {
+                    data.append(key + '[]', file);
+                });
+            }
+
+            // Create request
+            let xhr = new XMLHttpRequest();
+            xhr.responseType = 'text';
+            xhr.withCredentials = true;
+            xhr.open('POST', component.baseUrl + 'reactables/component', true);
+            xhr.setRequestHeader('X-Reactables', true);
+
+            // Upload start event
+            xhr.upload.onloadstart = () => {
+                let event = new Event('reactables-upload-start');
+                el.dispatchEvent(event);
+            }
+
+            // Upload progress event
+            xhr.upload.onprogress = e => {
+                let percent = Math.round((e.loaded / e.total) * 100);
+                let event = new CustomEvent('reactables-upload-progress', {detail: percent});
+                el.dispatchEvent(event);
+            }
+
+            // Upload success event
+            xhr.upload.onload = () => {
+                let event = new Event('reactables-upload-success');
+                el.dispatchEvent(event);
+            }
+
+            // Upload error event
+            xhr.upload.onerror = () => {
+                let event = new Event('reactables-upload-failed');
+                el.dispatchEvent(event);
+            }
+
+            // Load event
+            xhr.onload = () => {
+                if(xhr.status == 200) {
+                    // Parse response
+                    let response = JSON.parse(xhr.responseText);
+
+                    // Redirect
+                    if(response.redirect) return location.href = response.redirect;
+
+                    // Morphs the HTML
+                    component.newEls = [];
+                    morphdom(component.el, response.html, {
+
+                        // Parse new elements
+                        onNodeAdded: node => {
+                            if(node.hasAttribute('r-id')) {
+                                window.reactables.components.push(new ReactablesComponent(node));
+                                node.skipAddingChildren = true;
+                            } else {
+                                component.newEls.push(node);
+                            }
+                        },
+
+                        // Return unique element key
+                        getNodeKey: node => {
+                            let key = node.getAttribute('r-key');
+                            return key ? key : node.id;
+                        },
+
+                        // Prevent virtual DOM problems
+                        onBeforeElUpdated: (from, to) => {
+                            return !from.isEqualNode(to);
+                        }
+
+                    });
+
+                    // Parses the new data
+                    component.data = JSON.parse(response.data);
+                    component.files = {};
+
+                    // Remove attributes
+                    component.removeAttrs();
+
+                    // Bind stuff
+                    component.bind();
+
+                    // Parse query string
+                    component.parseQuery(response.query);
+
+                    // Dispatch events
+                    component.dispatchEvents(response.events);
+
+                    // Toggle loading elements
+                    component.toggleLoads();
+
+                    // Remove inits
+                    component.removeInits();
+
+                    // Dispatch update event
+                    let event = new Event('reactables-update-success');
+                    document.dispatchEvent(event);
+                } else if(xhr.status == 403) {
+                    // Page expired handler
+                    if(window.reactables.expiredHandler) {
+                        window.reactables['expiredHandler'](xhr.responseText, xhr.status);
+                    } else {
+                        window.reactables.showExpired();
+                    }
+                } else {
+                    // Error
+                    xhr.onerror();
+                }
+            }
+
+            // Error event
+            xhr.onerror = () => {
+                if(window.reactables.errorHandler) {
+                    window.reactables['errorHandler'](xhr.responseText, xhr.status);
+                } else {
+                    window.reactables.showError(xhr.responseText);
+                }
+            }
+
+            // Perform request
+            xhr.send(data);
         }
     }
 
     // Checks for duplicated assets
-    if(document.reactables) {
+    if(window.reactables) {
         console.error('[Reactables] You don\'t neet to included the assets more than once!');
         return;
     }
 
     // Init Reactables
-    document.reactables = new Reactables();
-    document.reactables.init();
+    window.reactables = new Reactables();
+    window.Reactables = window.reactables;
+    window.reactables.init();
 });
