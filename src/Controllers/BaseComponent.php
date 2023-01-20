@@ -342,7 +342,7 @@
             }, $content, 1);
 
             // Replace find component directive
-            $content = preg_replace('~\[r-component\]~i', 'document.reactables.find(\'' . $id . '\')', $content);
+            $content = preg_replace('~\[r-component\]~i', 'window.reactables.find(\'' . $id . '\')', $content);
 
             // Returns the content
             return $content;

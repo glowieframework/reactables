@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Set initial value
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
-                let debounce = model.getAttribute('r-debounce') || 500;
+                let debounce = model.getAttribute('r-debounce') || 250;
                 let debounceTimeout = null;
                 let value = this.data[name];
                 if(value !== undefined) model.value = value;
@@ -730,12 +730,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         /**
+         * Refreshes all components in the page.
+         */
+        refreshAll() {
+            this.components.forEach(component => {
+                this.refresh(component);
+            });
+        }
+
+        /**
          * Refreshes a component.
          * @param {ReactablesComponent} component Component to be refreshed.
-         * @param {Element} el Element that called the refresh.
+         * @param {?Element} el Element that called the refresh.
          * @param {?string} method Method call, if any.
          */
-        refresh(component, el, method = null) {
+        refresh(component, el = null, method = null) {
             // Toggle loading elements
             component.toggleLoads(false);
 
@@ -765,26 +774,26 @@ document.addEventListener('DOMContentLoaded', () => {
             // Upload start event
             xhr.upload.onloadstart = () => {
                 let event = new Event('reactables-upload-start');
-                el.dispatchEvent(event);
+                if(el) el.dispatchEvent(event);
             }
 
             // Upload progress event
             xhr.upload.onprogress = e => {
                 let percent = Math.round((e.loaded / e.total) * 100);
                 let event = new CustomEvent('reactables-upload-progress', {detail: percent});
-                el.dispatchEvent(event);
+                if(el) el.dispatchEvent(event);
             }
 
             // Upload success event
             xhr.upload.onload = () => {
                 let event = new Event('reactables-upload-success');
-                el.dispatchEvent(event);
+                if(el) el.dispatchEvent(event);
             }
 
             // Upload error event
             xhr.upload.onerror = () => {
                 let event = new Event('reactables-upload-failed');
-                el.dispatchEvent(event);
+                if(el) el.dispatchEvent(event);
             }
 
             // Load event
@@ -847,7 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Dispatch update event
                     let event = new Event('reactables-update-success');
-                    document.dispatchEvent(event);
+                    component.el.dispatchEvent(event);
                 } else if(xhr.status == 403) {
                     // Page expired handler
                     if(window.reactables.expiredHandler) {
