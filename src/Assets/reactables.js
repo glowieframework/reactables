@@ -54,12 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         files = {};
 
         /**
-         * New elements.
-         * @type {Element[]}
-         */
-        newEls = [];
-
-        /**
          *
          * @param {Element} el Component element.
          */
@@ -78,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.removeAttrs();
 
             // Bind stuff
-            this.bind(true);
+            this.bind();
 
             // Toggle loading elements
             this.toggleLoads();
@@ -164,43 +158,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /**
          * Binds component hooks.
-         * @param {boolean} listen Create event listeners.
          */
-        bind(listen = false) {
-            this.bindModels(listen);
-            this.bindEvents(listen);
-            this.bindRepeats(listen);
+        bind() {
+            this.bindModels();
+            this.bindEvents();
+            this.bindRepeats();
         }
 
         /**
          * Binds input models.
-         * @param {boolean} listen Create event listeners.
          */
-        bindModels(listen = false) {
+        bindModels() {
             // Inputs
             this.find('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
                 // Set initial value
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
                 let debounce = model.getAttribute('r-debounce') || 250;
-                let debounceTimeout = null;
                 let value = this.data[name];
                 if(value !== undefined) model.value = value;
 
                 // Set binding event
-                if(listen || this.newEls.includes(model)) model.addEventListener('input', () => {
+                model.removeEventListener('input', model.callback);
+                model.callback = () => {
                     this.data[name] = model.value;
                     if(!lazy) {
                         if(debounce) {
-                            if(debounceTimeout) clearTimeout(debounceTimeout);
-                            debounceTimeout = setTimeout(() => {
+                            if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
+                            model.debounceTimeout = setTimeout(() => {
                                 window.reactables.refresh(this, model);
                             }, debounce);
                         } else {
                             window.reactables.refresh(this, model);
                         }
                     }
-                });
+                };
+                model.addEventListener('input', model.callback);
 
                 // Remove attributes
                 model.removeAttribute('r-model');
@@ -214,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
                 let debounce = model.getAttribute('r-debounce');
-                let debounceTimeout = null;
                 let rawName = name.replace('[]', '');
                 let custom = model.getAttribute('value');
                 let value = this.data[rawName];
@@ -236,7 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Set binding event
-                if(listen || this.newEls.includes(model)) model.addEventListener('input', () => {
+                model.removeEventListener('input', model.callback);
+                model.callback = () => {
                     // Array
                     if(name.endsWith('[]')) {
                         if(!Array.isArray(this.data[rawName])) this.data[rawName] = [];
@@ -259,15 +252,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if(!lazy) {
                         if(debounce) {
-                            if(debounceTimeout) clearTimeout(debounceTimeout);
-                            debounceTimeout = setTimeout(() => {
+                            if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
+                            model.debounceTimeout = setTimeout(() => {
                                 window.reactables.refresh(this, model);
                             }, debounce);
                         } else {
                             window.reactables.refresh(this, model);
                         }
                     }
-                });
+                };
+                model.addEventListener('input', model.callback);
 
                 // Remove attributes
                 model.removeAttribute('r-model');
@@ -281,7 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
                 let debounce = model.getAttribute('r-debounce');
-                let debounceTimeout = null;
                 let rawName = name.replace('[]', '');
                 let value = this.data[rawName];
 
@@ -297,7 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Set binding event
-                if(listen || this.newEls.includes(model)) model.addEventListener('input', () => {
+                model.removeEventListener('input', model.callback);
+                model.callback = () => {
                     // Array
                     if(name.endsWith('[]')) {
                         this.data[rawName] = [];
@@ -310,15 +304,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if(!lazy) {
                         if(debounce) {
-                            if(debounceTimeout) clearTimeout(debounceTimeout);
-                            debounceTimeout = setTimeout(() => {
+                            if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
+                            model.debounceTimeout = setTimeout(() => {
                                 window.reactables.refresh(this, model);
                             }, debounce);
                         } else {
                             window.reactables.refresh(this, model);
                         }
                     }
-                });
+                };
+                model.addEventListener('input', model.callback);
+
+                // Remove attributes
+                model.removeAttribute('r-model');
+                model.removeAttribute('r-lazy');
+                model.removeAttribute('r-debounce');
             });
 
             // File inputs
@@ -326,22 +326,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
                 let debounce = model.getAttribute('r-debounce');
-                let debounceTimeout = null;
 
                 // Set binding event
-                if(listen || this.newEls.includes(model)) model.addEventListener('input', () => {
+                model.removeEventListener('input', model.callback);
+                model.callback = () => {
                     this.files[name] = model.files;
                     if(!lazy) {
                         if(debounce) {
-                            if(debounceTimeout) clearTimeout(debounceTimeout);
-                            debounceTimeout = setTimeout(() => {
+                            if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
+                            model.debounceTimeout = setTimeout(() => {
                                 window.reactables.refresh(this, model);
                             }, debounce);
                         } else {
                             window.reactables.refresh(this, model);
                         }
                     }
-                });
+                };
+                model.addEventListener('input', model.callback);
 
                 // Remove attributes
                 model.removeAttribute('r-model');
@@ -352,163 +353,245 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /**
          * Binds actions to events.
-         * @param {boolean} listen Create event listeners.
          */
-        bindEvents(listen = false) {
+        bindEvents() {
             // Clicks
             this.find('[r-click]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-click');
-                let prevent = el.hasAttribute('r-prevent');
+                let follow = el.hasAttribute('r-follow');
+                let debounce = el.getAttribute('r-debounce');
 
                 // Set binding event
-                if(listen || this.newEls.includes(el)) el.addEventListener('click', event => {
-                    if(prevent) event.preventDefault();
-                    window.reactables.refresh(this, el, value);
-                });
+                el.removeEventListener('click', el.callback);
+                el.callback = event => {
+                    if(!follow) event.preventDefault();
+                    if(debounce) {
+                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                        el.debounceTimeout = setTimeout(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, debounce);
+                    } else {
+                        window.reactables.refresh(this, el, value);
+                    }
+                };
+                el.addEventListener('click', el.callback);
 
                 // Remove attributes
                 el.removeAttribute('r-click');
-                el.removeAttribute('r-prevent');
+                el.removeAttribute('r-follow');
+                el.removeAttribute('r-debounce');
             });
 
             // Form submit
             this.find('[r-submit]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-submit');
-                let prevent = el.hasAttribute('r-prevent');
+                let follow = el.hasAttribute('r-follow');
+                let debounce = el.getAttribute('r-debounce');
 
                 // Set binding event
-                if(listen || this.newEls.includes(el)) el.addEventListener('submit', event => {
-                    if(prevent) event.preventDefault();
-                    window.reactables.refresh(this, el, value);
-                });
+                el.removeEventListener('submit', el.callback);
+                el.callback = event => {
+                    if(!follow) event.preventDefault();
+                    if(debounce) {
+                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                        el.debounceTimeout = setTimeout(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, debounce);
+                    } else {
+                        window.reactables.refresh(this, el, value);
+                    }
+                };
+                el.addEventListener('submit', el.callback);
 
                 // Remove attributes
                 el.removeAttribute('r-submit');
-                el.removeAttribute('r-prevent');
+                el.removeAttribute('r-follow');
+                el.removeAttribute('r-debounce');
             });
 
             // Focus
             this.find('[r-focus]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-focus');
-                let prevent = el.hasAttribute('r-prevent');
+                let debounce = el.getAttribute('r-debounce');
 
                 // Set binding event
-                if(listen || this.newEls.includes(el)) el.addEventListener('focus', event => {
-                    if(prevent) event.preventDefault();
-                    window.reactables.refresh(this, el, value);
-                });
+                el.removeEventListener('focus', el.callback);
+                el.callback = () => {
+                    if(debounce) {
+                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                        el.debounceTimeout = setTimeout(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, debounce);
+                    } else {
+                        window.reactables.refresh(this, el, value);
+                    }
+                };
+                el.addEventListener('focus', el.callback);
 
                 // Remove attributes
                 el.removeAttribute('r-focus');
-                el.removeAttribute('r-prevent');
+                el.removeAttribute('r-debounce');
             });
 
             // Blur
             this.find('[r-blur]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-blur');
-                let prevent = el.hasAttribute('r-prevent');
+                let debounce = el.getAttribute('r-debounce');
 
                 // Set binding event
-                if(listen || this.newEls.includes(el)) el.addEventListener('blur', event => {
-                    if(prevent) event.preventDefault();
-                    window.reactables.refresh(this, el, value);
-                });
+                el.removeEventListener('blur', el.callback);
+                el.callback = () => {
+                    if(debounce) {
+                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                        el.debounceTimeout = setTimeout(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, debounce);
+                    } else {
+                        window.reactables.refresh(this, el, value);
+                    }
+                };
+                el.addEventListener('blur', el.callback);
 
                 // Remove attributes
                 el.removeAttribute('r-blur');
-                el.removeAttribute('r-prevent');
+                el.removeAttribute('r-debounce');
             });
 
             // Mouse hover
             this.find('[r-hover]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-hover');
-                let prevent = el.hasAttribute('r-prevent');
+                let debounce = el.getAttribute('r-debounce');
 
                 // Set binding event
-                if(listen || this.newEls.includes(el)) el.addEventListener('mouseover', event => {
-                    if(prevent) event.preventDefault();
-                    window.reactables.refresh(this, el, value);
-                });
+                el.removeEventListener('mouseover', el.callback);
+                el.callback = () => {
+                    if(debounce) {
+                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                        el.debounceTimeout = setTimeout(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, debounce);
+                    } else {
+                        window.reactables.refresh(this, el, value);
+                    }
+                };
+                el.addEventListener('mouseover', el.callback);
 
                 // Remove attributes
                 el.removeAttribute('r-hover');
-                el.removeAttribute('r-prevent');
+                el.removeAttribute('r-debounce');
             });
 
             // Mouse leave
             this.find('[r-leave]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-leave');
-                let prevent = el.hasAttribute('r-prevent');
+                let debounce = el.getAttribute('r-debounce');
 
                 // Set binding event
-                if(listen || this.newEls.includes(el)) el.addEventListener('mouseleave', event => {
-                    if(prevent) event.preventDefault();
-                    window.reactables.refresh(this, el, value);
-                });
+                el.addEventListener('mouseleave', el.callback);
+                el.callback = () => {
+                    if(debounce) {
+                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                        el.debounceTimeout = setTimeout(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, debounce);
+                    } else {
+                        window.reactables.refresh(this, el, value);
+                    }
+                };
+                el.removeEventListener('mouseleave', el.callback);
 
                 // Remove attributes
                 el.removeAttribute('r-leave');
-                el.removeAttribute('r-prevent');
+                el.removeAttribute('r-debounce');
             });
 
             // Enter key
             this.find('[r-enter]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-enter');
-                let prevent = el.hasAttribute('r-prevent');
+                let follow = el.hasAttribute('r-follow');
+                let debounce = el.getAttribute('r-debounce');
 
                 // Set binding event
-                if(listen || this.newEls.includes(el)) el.addEventListener('keydown', event => {
+                el.removeEventListener('keydown', el.callback);
+                el.callback = event => {
                     if(event.key !== 'Enter') return;
-                    if(prevent) event.preventDefault();
-                    window.reactables.refresh(this, el, value);
-                });
+                    if(!follow) event.preventDefault();
+                    if(debounce) {
+                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                        el.debounceTimeout = setTimeout(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, debounce);
+                    } else {
+                        window.reactables.refresh(this, el, value);
+                    }
+                };
+                el.addEventListener('keydown', el.callback);
 
                 // Remove attributes
                 el.removeAttribute('r-enter');
-                el.removeAttribute('r-prevent');
+                el.removeAttribute('r-follow');
+                el.removeAttribute('r-debounce');
             });
 
             // Tab key
             this.find('[r-tab]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-tab');
-                let prevent = el.hasAttribute('r-prevent');
+                let follow = el.hasAttribute('r-follow');
+                let debounce = el.getAttribute('r-debounce');
 
                 // Set binding event
-                if(listen || this.newEls.includes(el)) el.addEventListener('keydown', event => {
+                el.removeEventListener('keydown', el.callback);
+                el.callback = event => {
                     if(event.key !== 'Tab') return;
-                    if(prevent) event.preventDefault();
-                    window.reactables.refresh(this, el, value);
-                });
+                    if(!follow) event.preventDefault();
+                    if(debounce) {
+                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                        el.debounceTimeout = setTimeout(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, debounce);
+                    } else {
+                        window.reactables.refresh(this, el, value);
+                    }
+                };
+                el.addEventListener('keydown', el.callback);
 
                 // Remove attributes
                 el.removeAttribute('r-tab');
-                el.removeAttribute('r-prevent');
+                el.removeAttribute('r-follow');
+                el.removeAttribute('r-debounce');
             });
         }
 
         /**
          * Binds the repeat calls.
-         * @param {boolean} listen Create event listeners.
          */
-        bindRepeats(listen = false) {
+        bindRepeats() {
             this.find('[r-repeat][r-interval]').forEach(el => {
                 // Get value
                 let value = el.getAttribute('r-repeat');
                 let interval = el.getAttribute('r-interval');
-                let repeatInterval = null;
+                let timeout = el.getAttribute('r-timeout');
 
                 // Set interval
-                if(listen || this.newEls.includes(el)) {
-                    if(repeatInterval) clearInterval(repeatInterval);
-                    repeatInterval = setInterval(() => {
+                if(timeout) {
+                    if(el.timeoutInterval) clearTimeout(el.timeoutInterval);
+                    el.timeoutInterval = setTimeout(() => {
+                        if(el.repeatInterval) clearInterval(el.repeatInterval);
+                        el.repeatInterval = setInterval(() => {
+                            window.reactables.refresh(this, el, value);
+                        }, interval);
+                    }, timeout);
+                } else {
+                    if(el.repeatInterval) clearInterval(el.repeatInterval);
+                    el.repeatInterval = setInterval(() => {
                         window.reactables.refresh(this, el, value);
                     }, interval);
                 }
@@ -516,6 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Remove attributes
                 el.removeAttribute('r-repeat');
                 el.removeAttribute('r-interval');
+                el.removeAttribute('r-timeout');
             });
         }
 
@@ -799,64 +883,67 @@ document.addEventListener('DOMContentLoaded', () => {
             // Load event
             xhr.onload = () => {
                 if(xhr.status == 200) {
-                    // Parse response
-                    let response = JSON.parse(xhr.responseText);
+                    try {
+                        // Parse response
+                        let response = JSON.parse(xhr.responseText);
+                        if(!response.status) return xhr.onerror();
 
-                    // Redirect
-                    if(response.redirect) return location.href = response.redirect;
+                        // Redirect
+                        if(response.redirect) return location.href = response.redirect;
 
-                    // Morphs the HTML
-                    component.newEls = [];
-                    morphdom(component.el, response.html, {
+                        // Morphs the HTML
+                        morphdom(component.el, response.html, {
 
-                        // Parse new elements
-                        onNodeAdded: node => {
-                            if(node.hasAttribute('r-id')) {
-                                window.reactables.components.push(new ReactablesComponent(node));
-                                node.skipAddingChildren = true;
-                            } else {
-                                component.newEls.push(node);
+                            // Parse new elements
+                            onNodeAdded: node => {
+                                if(node.hasAttribute('r-id')) {
+                                    window.reactables.components.push(new ReactablesComponent(node));
+                                    node.skipAddingChildren = true;
+                                }
+                            },
+
+                            // Return unique element key
+                            getNodeKey: node => {
+                                let key = node.getAttribute('r-key');
+                                return key ? key : node.id;
+                            },
+
+                            // Prevent virtual DOM problems
+                            onBeforeElUpdated: (from, to) => {
+                                return !from.isEqualNode(to);
                             }
-                        },
 
-                        // Return unique element key
-                        getNodeKey: node => {
-                            let key = node.getAttribute('r-key');
-                            return key ? key : node.id;
-                        },
+                        });
 
-                        // Prevent virtual DOM problems
-                        onBeforeElUpdated: (from, to) => {
-                            return !from.isEqualNode(to);
-                        }
+                        // Parses the new data
+                        component.data = JSON.parse(response.data);
+                        component.files = {};
 
-                    });
+                        // Remove attributes
+                        component.removeAttrs();
 
-                    // Parses the new data
-                    component.data = JSON.parse(response.data);
-                    component.files = {};
+                        // Bind stuff
+                        component.bind();
 
-                    // Remove attributes
-                    component.removeAttrs();
+                        // Parse query string
+                        component.parseQuery(response.query);
 
-                    // Bind stuff
-                    component.bind();
+                        // Dispatch events
+                        component.dispatchEvents(response.events);
 
-                    // Parse query string
-                    component.parseQuery(response.query);
+                        // Toggle loading elements
+                        component.toggleLoads();
 
-                    // Dispatch events
-                    component.dispatchEvents(response.events);
+                        // Remove inits
+                        component.removeInits();
 
-                    // Toggle loading elements
-                    component.toggleLoads();
-
-                    // Remove inits
-                    component.removeInits();
-
-                    // Dispatch update event
-                    let event = new Event('reactables-update-success');
-                    component.el.dispatchEvent(event);
+                        // Dispatch update event
+                        let event = new Event('reactables-update-success');
+                        component.el.dispatchEvent(event);
+                    } catch(error) {
+                        console.error(error);
+                        xhr.onerror();
+                    }
                 } else if(xhr.status == 403) {
                     // Page expired handler
                     if(window.reactables.expiredHandler) {

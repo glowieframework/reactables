@@ -19,8 +19,9 @@ Reactables is a plugin designed to create dynamic and reactive view components w
 - Interact with your backend logic using only PHP
 - Update the DOM in real time using Skeltch
 - Two-way data binding between view and controller
-- Listen for user interactions
-- Bundled validation interface
+- Listen for user interactions and show loading states
+- Support for temporary and definitive file uploads, previews and progress indicators
+- Bundled validation interface and query string updater
 - Completely SEO friendly
 - Incredibly lightweight and no performance impacts
 

@@ -50,10 +50,22 @@
          * @return bool Returns if the middleware is successful.
          */
         private function runMiddleware(string $middleware){
+            // Instantiate middleware class
             if (!class_exists($middleware)) throw new RoutingException("\"{$middleware}\" was not found");
             $middleware = new $middleware;
+
+            // Run middleware handler
             if (is_callable([$middleware, 'init'])) $middleware->init();
-            return $middleware->handle();
+            $response = $middleware->handle();
+
+            // Parse middleware response
+            if($response){
+                if (is_callable([$middleware, 'success'])) $middleware->success();
+                return true;
+            }else{
+                if (is_callable([$middleware, 'fail'])) $middleware->fail();
+                return false;
+            }
         }
 
     }

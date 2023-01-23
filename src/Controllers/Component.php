@@ -66,6 +66,7 @@
 
             // Return response
             $this->response->setJson([
+                'status' => true,
                 'html' => $html,
                 'query' => $class->buildQueryString(),
                 'data' => $class->getComponentData(),
