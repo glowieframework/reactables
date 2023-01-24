@@ -1,6 +1,0 @@
-- `reactables-ready` - emmitted in document object when Reactables finishes loading
-- `reactables-update-success` - emmitted in component root element when Reactables finishes updating components
-- `reactables-upload-start` - emitted in a file input element when upload starts
-- `reactables-upload-progress` - emitted in a file input element whenever the upload progress changes
-- `reactables-upload-success` - emitted in a file input element when upload finishes
-- `reactables-upload-failed` - emitted in a file input element when upload fails
