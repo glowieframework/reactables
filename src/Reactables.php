@@ -5,8 +5,11 @@
     use Glowie\Core\Plugin;
     use Glowie\Core\Http\Rails;
     use Glowie\Core\View\Skeltch;
+    use Glowie\Core\CLI\Firefly;
     use Glowie\Core\Exception\ConsoleException;
     use Glowie\Core\Exception\FileException;
+    use Glowie\Plugins\Reactables\Commands\CreateComponent;
+    use Glowie\Plugins\Reactables\Commands\DeleteTempUploads;
     use Glowie\Plugins\Reactables\Controllers\Component;
     use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
@@ -14,14 +17,6 @@
     use Util;
 
     class Reactables extends Plugin{
-
-        /**
-         * Array of files to be published to the app folder.
-         * @var array
-         */
-        protected $files = [
-            __DIR__ . '/Commands' => 'commands',
-        ];
 
         /**
          * Initializes the plugin.
@@ -34,6 +29,10 @@
             // Register the Skeltch directives
             Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1); ?>');
             Skeltch::directive('reactablesAssets', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets(); ?>');
+
+            // Register the CLI commands
+            Firefly::custom('create-component', CreateComponent::class);
+            Firefly::custom('delete-temp-uploads', DeleteTempUploads::class);
         }
 
         /**

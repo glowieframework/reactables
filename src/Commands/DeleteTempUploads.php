@@ -1,5 +1,5 @@
 <?php
-    namespace Glowie\Commands;
+    namespace Glowie\Plugins\Reactables\Commands;
 
     use Glowie\Core\CLI\Command;
     use Glowie\Plugins\Reactables\Reactables;
