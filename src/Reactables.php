@@ -1,21 +1,27 @@
 <?php
     namespace Glowie\Plugins\Reactables;
 
-    use Config;
+    use Util;
     use Glowie\Core\Plugin;
     use Glowie\Core\Http\Rails;
     use Glowie\Core\View\Skeltch;
     use Glowie\Core\CLI\Firefly;
-    use Glowie\Core\Exception\ConsoleException;
-    use Glowie\Core\Exception\FileException;
     use Glowie\Plugins\Reactables\Commands\CreateComponent;
     use Glowie\Plugins\Reactables\Commands\DeleteTempUploads;
     use Glowie\Plugins\Reactables\Controllers\Component;
     use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
     use Glowie\Plugins\Reactables\Middlewares\DispatchMiddlewares;
-    use Util;
 
+    /**
+     * Glowie dynamic view components plugin.
+     * @category Plugin
+     * @package glowieframework/glowie-reactables
+     * @author Glowie
+     * @copyright Copyright (c) Glowie
+     * @license MIT
+     * @link https://glowie.tk
+     */
     class Reactables extends Plugin{
 
         /**
@@ -56,57 +62,6 @@
          */
         public static function renderAssets(){
             echo '<script src="' . Util::baseUrl('reactables/assets.js') . '"></script>';
-        }
-
-        /**
-         * Handler for `create-component` Firefly command.
-         * @param string $name Component name.
-         * @param array $args Firefly args.
-         */
-        public static function createComponent(string $name, array $args){
-            // Validates the component name
-            if(empty($name)) throw new ConsoleException('create-component', $args, 'Missing required argument "name" for this command');
-
-            // Checks if the component exists
-            $classname = Util::pascalCase($name);
-            $viewname = Util::snakeCase($name);
-            $controllerFile = Util::location('controllers/Components/' . $classname . '.php');
-            if(is_file($controllerFile)) throw new ConsoleException('create-component', $args, "Component {$classname} already exists!");
-
-            // Checks components controllers folder
-            if(!is_dir(Util::location('controllers/Components'))) mkdir(Util::location('controllers/Components'), 0755, true);
-            if(!is_writable(Util::location('controllers/Components'))) throw new FileException('Directory "app/controllers/Components" is not writable, please check your chmod settings');
-
-            // Creates the controller file
-            $template = file_get_contents(__DIR__ . '/Templates/Controller.php');
-            $template = str_replace('__FIREFLY_TEMPLATE_NAME__', $classname, $template);
-            $template = str_replace('__FIREFLY_TEMPLATE_VIEW__', $viewname, $template);
-            file_put_contents($controllerFile, $template);
-
-            // Checks components view folder
-            if(!is_dir(Util::location('views/components'))) mkdir(Util::location('views/components'), 0755, true);
-            if(!is_writable(Util::location('views/components'))) throw new FileException('Directory "app/views/components" is not writable, please check your chmod settings');
-
-            // Creates the view file
-            $template = file_get_contents(__DIR__ . '/Templates/view.phtml');
-            $viewFile = Util::location('views/components/' . $viewname . '.phtml');
-            file_put_contents($viewFile, $template);
-
-            // Return result
-            return [
-                'classname' => $classname,
-                'controllerFile' => $controllerFile,
-                'viewFile' => $viewFile
-            ];
-        }
-
-        /**
-         * Handler for `delete-temp-uploads` Firefly command.
-         */
-        public static function deleteTempUploads(){
-            $dir = Config::get('reactables.tmp_path', Util::location('storage/reactables'));
-            if(!is_writable($dir)) throw new FileException('Directory "' . $dir . '" is not writable, please check your chmod settings');
-            foreach (Util::getFiles($dir . '/*') as $filename) unlink($filename);
         }
 
     }

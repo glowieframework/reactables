@@ -67,9 +67,9 @@
 
         /**
          * Redirect target.
-         * @var string
+         * @var string|null
          */
-        private $redirectTarget = '';
+        private $redirectTarget;
 
         /**
          * Array of dispatched events.
@@ -88,7 +88,7 @@
 
         /**
          * Sets the component id.
-         * @var string $id Component id to set.
+         * @param string $id Component id to set.
          */
         final public function setComponentId(string $id){
             $this->id = $id;
@@ -107,7 +107,6 @@
          * @return string Returns the component data.
          */
         final public function getComponentData(){
-            if(empty($this->component->toArray())) return '{}';
             return $this->component->toJson();
         }
 
@@ -218,10 +217,10 @@
 
         /**
          * Returns the redirect target, if any.
-         * @return string|bool Redirect URL or false.
+         * @return string|null Redirect URL or null.
          */
         final public function getRedirectTarget(){
-            return !empty($this->redirectTarget) ? $this->redirectTarget : false;
+            return $this->redirectTarget;
         }
 
         /**
@@ -248,7 +247,7 @@
                         if(!$this->validator->validate($file->tmp_name, $this->uploadRules, true)) continue;
 
                         // Upload the file
-                        $target = $target . DIRECTORY_SEPARATOR . Util::uniqueToken() . '.tmp';
+                        $target = $target . '/' . Util::uniqueToken() . '.tmp';
                         if(@move_uploaded_file($file->tmp_name, $target)){
                             $file->tmp_name = $target;
                             $result[] = $file;
@@ -293,7 +292,7 @@
             if(!is_writable($directory)) throw new FileException('Directory "' . $directory . '" is invalid or not writable');
 
             // Move the temp file to the target folder
-            $target = $directory . DIRECTORY_SEPARATOR . ($filename ?? $file->name);
+            $target = $directory . '/' . ($filename ?? $file->name);
             $result = @rename($file->tmp_name, $target);
             return $result ? $target : false;
         }

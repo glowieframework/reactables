@@ -2,7 +2,9 @@
     namespace Glowie\Plugins\Reactables\Commands;
 
     use Glowie\Core\CLI\Command;
-    use Glowie\Plugins\Reactables\Reactables;
+    use Glowie\Core\Exception\FileException;
+    use Config;
+    use Util;
 
     /**
      * Reactables delete temporary uploads command.
@@ -19,7 +21,14 @@
          * The command script.
          */
         public function run(){
-            Reactables::deleteTempUploads();
+            // Get temp directory
+            $dir = Config::get('reactables.tmp_path', Util::location('storage/reactables'));
+            if(!is_writable($dir)) throw new FileException('Directory "' . $dir . '" is not writable, please check your chmod settings');
+
+            // Delete files
+            foreach (Util::getFiles($dir . '/*') as $filename) unlink($filename);
+
+            // Return result
             $this->success("Temporary uploads deleted successfully!");
         }
 
