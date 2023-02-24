@@ -37,8 +37,8 @@
             Skeltch::directive('reactablesAssets', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets(); ?>');
 
             // Register the CLI commands
-            Firefly::custom('create-component', CreateComponent::class);
-            Firefly::custom('delete-temp-uploads', DeleteTempUploads::class);
+            Firefly::custom('reactables', CreateComponent::class);
+            Firefly::custom('reactables', DeleteTempUploads::class);
         }
 
         /**
@@ -51,8 +51,8 @@
             if(!class_exists($class)) throw new ComponentException('Component "' . $component . '" does not exist');
             $class = new $class;
             $class->initializeComponent();
-            if(is_callable([$class, 'create'])) $class->create();
             $class->fillComponentParams($params);
+            if(is_callable([$class, 'create'])) $class->create();
             $class->fillQueryParams();
             $class->make();
         }

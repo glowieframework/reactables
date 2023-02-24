@@ -4,7 +4,7 @@
     use Glowie\Plugins\Reactables\Controllers\BaseComponent;
 
     /**
-     * Reactables component controller.
+     * __FIREFLY_TEMPLATE_NAME__ component controller.
      * @category Controller
      * @package glowieframework/glowie-reactables
      * @author Glowie

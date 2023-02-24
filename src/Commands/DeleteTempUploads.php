@@ -29,6 +29,7 @@
             foreach (Util::getFiles($dir . '/*') as $filename) unlink($filename);
 
             // Return result
+            $this->print('<bg="yellow"><color="black">Reactables</color></bg> ', false);
             $this->success("Temporary uploads deleted successfully!");
         }
 
