@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://glowie.tk/reactables" target="_blank"><img src="https://i.imgur.com/prpiWac.png" alt="SkeltchGo" width="250"/></a>
+    <a href="https://eugabrielsilva.tk/glowie/reactables" target="_blank"><img src="https://i.imgur.com/prpiWac.png" alt="SkeltchGo" width="250"/></a>
 </p>
 
 <p align="center">
@@ -9,10 +9,8 @@
     <a href="https://packagist.org/packages/glowieframework/glowie-reactables" target="_blank"><img src="https://img.shields.io/packagist/php-v/glowieframework/glowie" alt="PHP Version"></a>
 </p>
 
-> **Note:** This package is currently under development and may not work properly until a stable version is released!
-
 ## Glowie dynamic view components plugin
-Reactables is a plugin designed to create dynamic and reactive view components with [Glowie Framework](https://glowie.tk).
+Reactables is a plugin designed to create dynamic and reactive view components with [Glowie Framework](https://eugabrielsilva.tk/glowie).
 
 ## Features
 - Create reactive components without Javascript or API calls

@@ -19,7 +19,7 @@
      * @author Glowie
      * @copyright Copyright (c) Glowie
      * @license MIT
-     * @link https://glowie.tk
+     * @link https://eugabrielsilva.tk/glowie
      */
     abstract class BaseComponent extends Controller{
 
@@ -107,7 +107,7 @@
          * @return string Returns the component data.
          */
         final public function getComponentData(){
-            return $this->component->toJson();
+            return $this->component->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
         /**
@@ -336,7 +336,7 @@
             // Pumps the content
             $content = preg_replace_callback('~<([^\s]+)(.*)>~', function($matches) use($id, $data){
                 return sprintf('<%s%s r-id="%s" r-data="%s">',
-                    $matches[1], $matches[2], $id, htmlspecialchars(Util::jsonEncode($data))
+                    $matches[1], $matches[2], $id, htmlspecialchars(Util::jsonEncode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
                 );
             }, $content, 1);
 

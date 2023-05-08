@@ -13,7 +13,7 @@
      * @author Glowie
      * @copyright Copyright (c) Glowie
      * @license MIT
-     * @link https://glowie.tk
+     * @link https://eugabrielsilva.tk/glowie
      */
     class Component extends Controller{
 
@@ -29,6 +29,8 @@
             $name = Util::pascalCase($data->name);
             $class = '\Glowie\Controllers\Components\\' . $name;
             if(!class_exists($class)) throw new ComponentException('Component "' . $name . '" does not exist');
+
+            /** @var BaseComponent */
             $class = new $class;
 
             // Initialize component data
@@ -40,7 +42,7 @@
             if(!empty($_FILES)) $class->handleUploads();
 
             // Call update method
-            if(is_callable([$class, 'update'])) $class->update();
+            if(is_callable([$class, 'update'])) call_user_func([$class, 'update']);
 
             // Check method call
             if(!empty($data->method)){
@@ -80,6 +82,7 @@
          */
         public function assets(){
             $this->response->setContentType('text/javascript');
+            $this->response->disableCache();
             echo file_get_contents(__DIR__ . '/../Assets/morphdom.min.js') . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');;
         }
 

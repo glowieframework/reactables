@@ -2,7 +2,7 @@
     "name": "glowieframework/glowie-reactables",
     "description": "Glowie dynamic view components plugin",
     "license": "MIT",
-    "homepage": "https://glowie.tk/reactables",
+    "homepage": "https://eugabrielsilva.tk/glowie/reactables",
     "support": {
         "issues": "https://github.com/glowieframework/glowie-reactables/issues",
         "source": "https://github.com/glowieframework/glowie-reactables"
@@ -10,8 +10,8 @@
     "authors": [
         {
             "name": "Gabriel Silva",
-            "email": "dev@glowie.tk",
-            "homepage": "https://glowie.tk"
+            "email": "glowie@eugabrielsilva.tk",
+            "homepage": "https://eugabrielsilva.tk/glowie"
         }
     ],
     "require": {
