@@ -30,9 +30,9 @@
         public function register(){
             // Register the AJAX and assets routes
             Rails::groupRoutes('reactables', function(){
-                Rails::addProtectedRoute('reactables/component', [ValidateChecksum::class, DispatchMiddlewares::class], Component::class, 'component', 'post', 'reactables-component-route');
-                Rails::addRoute('reactables/assets.js', Component::class, 'assets', [], 'reactables-assets-route');
-            });
+                Rails::addProtectedRoute('component', [ValidateChecksum::class, DispatchMiddlewares::class], Component::class, 'component', 'post', 'reactables-component-route');
+                Rails::addRoute('assets.js', Component::class, 'assets', [], 'reactables-assets-route');
+            }, true);
 
             // Register the Skeltch directives
             Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1); ?>');
@@ -51,13 +51,10 @@
         public static function renderComponent(string $component, array $params = []){
             $class = '\Glowie\Controllers\Components\\' . Util::pascalCase($component);
             if(!class_exists($class)) throw new ComponentException('Component "' . $component . '" does not exist');
-
-            /** @var \Glowie\Plugins\Reactables\Controllers\BaseComponent */
             $class = new $class;
-
             $class->initializeComponent();
             $class->fillComponentParams($params);
-            if(is_callable([$class, 'create'])) call_user_func([$class, 'create']);
+            if(is_callable([$class, 'create'])) $class->create();
             $class->fillQueryParams();
             $class->make();
         }

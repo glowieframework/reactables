@@ -14,14 +14,12 @@
             "homepage": "https://eugabrielsilva.tk/glowie"
         }
     ],
-    "require": {
-        "glowieframework/glowie-core": "^1.4|@dev"
+    "require-dev": {
+        "glowieframework/glowie-core": "dev-wip"
     },
     "autoload": {
         "psr-4": {
             "Glowie\\Plugins\\Reactables\\": "src/"
         }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }

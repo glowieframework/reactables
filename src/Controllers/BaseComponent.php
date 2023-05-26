@@ -167,10 +167,24 @@
          * Renders the component view.
          * @param string $component Component view filename. Must be a **.phtml** file inside **app/views/components** folder, extension is not needed.
          * @param array $params (Optional) Parameters to pass into the view. Should be an associative array with each variable name and value.
+         * @param bool $absolute (Optional) Use an absolute path for the view file.
          */
-        final protected function render(string $component, array $params = []){
+        final protected function render(string $component, array $params = [], bool $absolute = false){
             $this->fillComponentParams($params);
-            $view = new View('components/' . $component, $this->component->toArray());
+            $view = new View(!$absolute ? ('components/' . $component) : $component, $this->component->toArray(), false, $absolute);
+            $content = $this->putData($view->getContent());
+            echo $content;
+        }
+
+        /**
+         * Renders the component view in a private scope.
+         * @param string $component Component view filename. Must be a **.phtml** file inside **app/views/components** folder, extension is not needed.
+         * @param array $params (Optional) Parameters to pass into the view. Should be an associative array with each variable name and value.
+         * @param bool $absolute (Optional) Use an absolute path for the view file.
+         */
+        final protected function renderPrivate(string $component, array $params = [], bool $absolute = false){
+            $this->fillComponentParams($params);
+            $view = new View(!$absolute ? ('components/' . $component) : $component, $this->component->toArray(), true, $absolute);
             $content = $this->putData($view->getContent());
             echo $content;
         }
