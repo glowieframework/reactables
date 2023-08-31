@@ -54,19 +54,18 @@
             if (!class_exists($classname)) throw new RoutingException("\"{$classname}\" was not found");
 
             // Check if class is bypassed
-            if(defined("$classname::REACTABLES_BYPASS")) return true;
             $middleware = new $classname;
 
             // Run middleware handler
-            if (is_callable([$middleware, 'init']) && !defined("$classname::REACTABLES_NO_INIT")) $middleware->init();
+            if (is_callable([$middleware, 'init'])) $middleware->init();
             $response = $middleware->handle();
 
             // Parse middleware response
             if($response){
-                if (is_callable([$middleware, 'success']) && !defined("$classname::REACTABLES_NO_SUCCESS")) $middleware->success();
+                if (is_callable([$middleware, 'success'])) $middleware->success();
                 return true;
             }else{
-                if (is_callable([$middleware, 'fail']) && !defined("$classname::REACTABLES_NO_FAIL")) $middleware->fail();
+                if (is_callable([$middleware, 'fail'])) $middleware->fail();
                 return false;
             }
         }

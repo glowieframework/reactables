@@ -357,217 +357,78 @@ document.addEventListener('DOMContentLoaded', () => {
         bindEvents() {
             // Clicks
             this.find('[r-click]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-click');
-                let follow = el.hasAttribute('r-follow');
-                let debounce = el.getAttribute('r-debounce');
-
-                // Set binding event
-                el.removeEventListener('click', el.callback);
-                el.callback = event => {
-                    if(!follow) event.preventDefault();
-                    if(debounce) {
-                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                        el.debounceTimeout = setTimeout(() => {
-                            window.reactables.refresh(this, el, value);
-                        }, debounce);
-                    } else {
-                        window.reactables.refresh(this, el, value);
-                    }
-                };
-                el.addEventListener('click', el.callback);
-
-                // Remove attributes
-                el.removeAttribute('r-click');
-                el.removeAttribute('r-follow');
-                el.removeAttribute('r-debounce');
+                this.defaultEventBinder(el, 'click', 'r-click');
             });
 
             // Form submit
             this.find('[r-submit]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-submit');
-                let follow = el.hasAttribute('r-follow');
-                let debounce = el.getAttribute('r-debounce');
-
-                // Set binding event
-                el.removeEventListener('submit', el.callback);
-                el.callback = event => {
-                    if(!follow) event.preventDefault();
-                    if(debounce) {
-                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                        el.debounceTimeout = setTimeout(() => {
-                            window.reactables.refresh(this, el, value);
-                        }, debounce);
-                    } else {
-                        window.reactables.refresh(this, el, value);
-                    }
-                };
-                el.addEventListener('submit', el.callback);
-
-                // Remove attributes
-                el.removeAttribute('r-submit');
-                el.removeAttribute('r-follow');
-                el.removeAttribute('r-debounce');
+                this.defaultEventBinder(el, 'submit', 'r-submit');
             });
 
             // Focus
             this.find('[r-focus]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-focus');
-                let debounce = el.getAttribute('r-debounce');
-
-                // Set binding event
-                el.removeEventListener('focus', el.callback);
-                el.callback = () => {
-                    if(debounce) {
-                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                        el.debounceTimeout = setTimeout(() => {
-                            window.reactables.refresh(this, el, value);
-                        }, debounce);
-                    } else {
-                        window.reactables.refresh(this, el, value);
-                    }
-                };
-                el.addEventListener('focus', el.callback);
-
-                // Remove attributes
-                el.removeAttribute('r-focus');
-                el.removeAttribute('r-debounce');
+                this.defaultEventBinder(el, 'focus', 'r-focus');
             });
 
             // Blur
             this.find('[r-blur]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-blur');
-                let debounce = el.getAttribute('r-debounce');
-
-                // Set binding event
-                el.removeEventListener('blur', el.callback);
-                el.callback = () => {
-                    if(debounce) {
-                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                        el.debounceTimeout = setTimeout(() => {
-                            window.reactables.refresh(this, el, value);
-                        }, debounce);
-                    } else {
-                        window.reactables.refresh(this, el, value);
-                    }
-                };
-                el.addEventListener('blur', el.callback);
-
-                // Remove attributes
-                el.removeAttribute('r-blur');
-                el.removeAttribute('r-debounce');
+                this.defaultEventBinder(el, 'blur', 'r-blur');
             });
 
             // Mouse hover
             this.find('[r-hover]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-hover');
-                let debounce = el.getAttribute('r-debounce');
-
-                // Set binding event
-                el.removeEventListener('mouseover', el.callback);
-                el.callback = () => {
-                    if(debounce) {
-                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                        el.debounceTimeout = setTimeout(() => {
-                            window.reactables.refresh(this, el, value);
-                        }, debounce);
-                    } else {
-                        window.reactables.refresh(this, el, value);
-                    }
-                };
-                el.addEventListener('mouseover', el.callback);
-
-                // Remove attributes
-                el.removeAttribute('r-hover');
-                el.removeAttribute('r-debounce');
+                this.defaultEventBinder(el, 'mouseover', 'r-hover');
             });
 
             // Mouse leave
             this.find('[r-leave]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-leave');
-                let debounce = el.getAttribute('r-debounce');
-
-                // Set binding event
-                el.addEventListener('mouseleave', el.callback);
-                el.callback = () => {
-                    if(debounce) {
-                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                        el.debounceTimeout = setTimeout(() => {
-                            window.reactables.refresh(this, el, value);
-                        }, debounce);
-                    } else {
-                        window.reactables.refresh(this, el, value);
-                    }
-                };
-                el.removeEventListener('mouseleave', el.callback);
-
-                // Remove attributes
-                el.removeAttribute('r-leave');
-                el.removeAttribute('r-debounce');
+                this.defaultEventBinder(el, 'mouseleave', 'r-leave');
             });
 
             // Enter key
             this.find('[r-enter]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-enter');
-                let follow = el.hasAttribute('r-follow');
-                let debounce = el.getAttribute('r-debounce');
-
-                // Set binding event
-                el.removeEventListener('keydown', el.callback);
-                el.callback = event => {
-                    if(event.key !== 'Enter') return;
-                    if(!follow) event.preventDefault();
-                    if(debounce) {
-                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                        el.debounceTimeout = setTimeout(() => {
-                            window.reactables.refresh(this, el, value);
-                        }, debounce);
-                    } else {
-                        window.reactables.refresh(this, el, value);
-                    }
-                };
-                el.addEventListener('keydown', el.callback);
-
-                // Remove attributes
-                el.removeAttribute('r-enter');
-                el.removeAttribute('r-follow');
-                el.removeAttribute('r-debounce');
+                this.defaultEventBinder(el, 'keydown', 'r-enter', 'Enter');
             });
 
             // Tab key
             this.find('[r-tab]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-tab');
-                let follow = el.hasAttribute('r-follow');
-                let debounce = el.getAttribute('r-debounce');
-
-                // Set binding event
-                el.removeEventListener('keydown', el.callback);
-                el.callback = event => {
-                    if(event.key !== 'Tab') return;
-                    if(!follow) event.preventDefault();
-                    if(debounce) {
-                        if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                        el.debounceTimeout = setTimeout(() => {
-                            window.reactables.refresh(this, el, value);
-                        }, debounce);
-                    } else {
-                        window.reactables.refresh(this, el, value);
-                    }
-                };
-                el.addEventListener('keydown', el.callback);
-
-                // Remove attributes
-                el.removeAttribute('r-tab');
-                el.removeAttribute('r-follow');
-                el.removeAttribute('r-debounce');
+                this.defaultEventBinder(el, 'keydown', 'r-tab', 'Tab');
             });
+        }
+
+        /**
+         *
+         * @param {Element} el Element to be bound.
+         * @param {string} event Event name.
+         * @param {string} attr Attribute.
+         * @param {string|false} key Keypress validator.
+         */
+        defaultEventBinder(el, event, attr, key = false) {
+            // Get value
+            let value = el.getAttribute(attr);
+            let follow = el.hasAttribute('r-follow');
+            let debounce = el.getAttribute('r-debounce');
+
+            // Set binding event
+            el.removeEventListener(event, el.callback);
+            el.callback = event => {
+                if(key && event.key !== key) return;
+                if(!follow) event.preventDefault();
+                if(debounce) {
+                    if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
+                    el.debounceTimeout = setTimeout(() => {
+                        window.reactables.refresh(this, el, value);
+                    }, debounce);
+                } else {
+                    window.reactables.refresh(this, el, value);
+                }
+            };
+            el.addEventListener(event, el.callback);
+
+            // Remove attributes
+            el.removeAttribute(attr);
+            el.removeAttribute('r-follow');
+            el.removeAttribute('r-debounce');
         }
 
         /**
@@ -742,8 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /**
          * Sets a custom error handler.
-         * @param {Function} callback Custom error handler function. The function receives two parameters:\
-         * the error message body and the HTTP status code.
+         * @param {Function} callback Custom error handler function. The function receives the response object.
          */
         onError(callback) {
             this.errorHandler = callback;
@@ -751,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         /**
          * Sets a custom Page Expired error handler.
-         * @param {Function} callback Custom page expired handler function.
+         * @param {Function} callback Custom page expired handler function. The function receives the response object.
          */
         onPageExpired(callback) {
             this.expiredHandler = callback;
@@ -947,7 +807,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if(xhr.status == 403) {
                     // Page expired handler
                     if(window.reactables.expiredHandler) {
-                        window.reactables['expiredHandler'](xhr.responseText, xhr.status);
+                        window.reactables['expiredHandler']({
+                            status: xhr.status,
+                            body: xhr.responseText
+                        });
                     } else {
                         window.reactables.showExpired();
                     }
@@ -960,7 +823,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Error event
             xhr.onerror = () => {
                 if(window.reactables.errorHandler) {
-                    window.reactables['errorHandler'](xhr.responseText, xhr.status);
+                    window.reactables['errorHandler']({
+                        status: xhr.status,
+                        body: xhr.responseText
+                    });
                 } else {
                     window.reactables.showError(xhr.responseText);
                 }
