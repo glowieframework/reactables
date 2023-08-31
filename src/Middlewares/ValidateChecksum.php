@@ -7,7 +7,7 @@
     /**
      * Reactables checksum validation middleware.
      * @category Middleware
-     * @package glowieframework/glowie-reactables
+     * @package glowieframework/reactables
      * @author Glowie
      * @copyright Copyright (c) Glowie
      * @license MIT

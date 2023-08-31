@@ -9,7 +9,7 @@
     /**
      * Reactables delete temporary uploads command.
      * @category Command
-     * @package glowieframework/glowie-reactables
+     * @package glowieframework/reactables
      * @author Glowie
      * @copyright Copyright (c) Glowie
      * @license MIT

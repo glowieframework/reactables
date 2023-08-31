@@ -7,7 +7,7 @@
     /**
      * Reactables component exception handler.
      * @category Exception
-     * @package glowieframework/glowie-reactables
+     * @package glowieframework/reactables
      * @author Glowie
      * @copyright Copyright (c) Glowie
      * @license MIT

@@ -16,7 +16,7 @@
     /**
      * Glowie dynamic view components plugin.
      * @category Plugin
-     * @package glowieframework/glowie-reactables
+     * @package glowieframework/reactables
      * @author Glowie
      * @copyright Copyright (c) Glowie
      * @license MIT

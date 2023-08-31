@@ -3,10 +3,10 @@
 </p>
 
 <p align="center">
-    <a href="https://packagist.org/packages/glowieframework/glowie-reactables"><img src="https://img.shields.io/github/v/release/glowieframework/glowie-reactables" alt="Latest Version"></a>
-    <a href="https://packagist.org/packages/glowieframework/glowie-reactables" target="_blank"><img src="https://img.shields.io/packagist/dt/glowieframework/glowie-reactables" alt="Total Downloads"></a>
-    <a href="https://packagist.org/packages/glowieframework/glowie-reactables" target="_blank"><img src="https://img.shields.io/github/license/glowieframework/glowie-reactables" alt="License"></a>
-    <a href="https://packagist.org/packages/glowieframework/glowie-reactables" target="_blank"><img src="https://img.shields.io/packagist/php-v/glowieframework/glowie" alt="PHP Version"></a>
+    <a href="https://packagist.org/packages/glowieframework/reactables"><img src="https://img.shields.io/github/v/release/glowieframework/reactables" alt="Latest Version"></a>
+    <a href="https://packagist.org/packages/glowieframework/reactables" target="_blank"><img src="https://img.shields.io/packagist/dt/glowieframework/reactables" alt="Total Downloads"></a>
+    <a href="https://packagist.org/packages/glowieframework/reactables" target="_blank"><img src="https://img.shields.io/github/license/glowieframework/reactables" alt="License"></a>
+    <a href="https://packagist.org/packages/glowieframework/reactables" target="_blank"><img src="https://img.shields.io/packagist/php-v/glowieframework/glowie" alt="PHP Version"></a>
 </p>
 
 ## Glowie dynamic view components plugin
