@@ -355,14 +355,14 @@ document.addEventListener('DOMContentLoaded', () => {
          * Binds actions to events.
          */
         bindEvents() {
-            // Clicks
-            this.find('[r-click]').forEach(el => {
-                this.defaultEventBinder(el, 'click', 'r-click');
-            });
-
-            // Form submit
+            // Submit
             this.find('[r-submit]').forEach(el => {
                 this.defaultEventBinder(el, 'submit', 'r-submit');
+            });
+
+            // Change
+            this.find('[r-change]').forEach(el => {
+                this.defaultEventBinder(el, 'change', 'r-change');
             });
 
             // Focus
@@ -375,9 +375,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.defaultEventBinder(el, 'blur', 'r-blur');
             });
 
+            // Click
+            this.find('[r-click]').forEach(el => {
+                this.defaultEventBinder(el, 'click', 'r-click');
+            });
+
             // Mouse hover
             this.find('[r-hover]').forEach(el => {
                 this.defaultEventBinder(el, 'mouseover', 'r-hover');
+            });
+
+            // Mouse move
+            this.find('[r-move]').forEach(el => {
+                this.defaultEventBinder(el, 'mousemove', 'r-move');
             });
 
             // Mouse leave
@@ -393,6 +403,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Tab key
             this.find('[r-tab]').forEach(el => {
                 this.defaultEventBinder(el, 'keydown', 'r-tab', 'Tab');
+            });
+
+            // Esc key
+            this.find('[r-esc]').forEach(el => {
+                this.defaultEventBinder(el, 'keydown', 'r-esc', 'Escape');
             });
         }
 
