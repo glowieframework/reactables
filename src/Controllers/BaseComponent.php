@@ -2,10 +2,10 @@
     namespace Glowie\Plugins\Reactables\Controllers;
 
     use Glowie\Core\Http\Controller;
-    use Glowie\Core\Element;
     use Glowie\Core\View\View;
     use Glowie\Core\Http\Session;
     use Glowie\Core\Exception\FileException;
+    use Glowie\Plugins\Reactables\Controllers\ExtendedElement;
     use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Core\Tools\Validator;
     use Glowie\Core\Http\Rails;
@@ -25,7 +25,7 @@
 
         /**
          * Component parameters.
-         * @var Element
+         * @var ExtendedElement
          */
         protected $component;
 
@@ -81,7 +81,7 @@
          * Initializes the component core.
          */
         final public function initializeComponent(){
-            $this->component = new Element();
+            $this->component = new ExtendedElement();
             $this->validator = new Validator();
             $this->id = Util::uniqueToken();
         }
@@ -98,8 +98,8 @@
          * Fills the component data. This will merge the current data with new parameters.
          * @param array $params Associative array of parameters with each variable name and value to fill.
          */
-        final public function fillComponentParams(array $params){
-            $this->component->set($params);
+        final public function fillComponentParams(array $params, bool $invokeTypes = false){
+            $this->component->set($params, null, false, $invokeTypes);
         }
 
         /**
@@ -107,7 +107,7 @@
          * @return string Returns the component data.
          */
         final public function getComponentData(){
-            return $this->component->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            return $this->component->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES, 512, true);
         }
 
         /**

@@ -36,7 +36,7 @@
             // Initialize component data
             $class->initializeComponent();
             if(!empty($data->id)) $class->setComponentId($data->id);
-            if(!empty($data->data)) $class->fillComponentParams((array)json_decode($data->data));
+            if(!empty($data->data)) $class->fillComponentParams((array)json_decode($data->data), true);
 
             // Handle uploads
             if(!empty($_FILES)) $class->handleUploads();

@@ -175,13 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 let name = model.getAttribute('r-model');
                 let lazy = model.hasAttribute('r-lazy');
                 let debounce = model.getAttribute('r-debounce') || 250;
-                let value = this.data[name];
+                let value = this.getValueDotNotation(this.data, name);
                 if(value !== undefined) model.value = value;
 
                 // Set binding event
                 model.removeEventListener('input', model.callback);
                 model.callback = () => {
-                    this.data[name] = model.value;
+                    this.setValueDotNotation(this.data, name, model.value);
                     if(!lazy) {
                         if(debounce) {
                             if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let debounce = model.getAttribute('r-debounce');
                 let rawName = name.replace('[]', '');
                 let custom = model.getAttribute('value');
-                let value = this.data[rawName];
+                let value = this.getValueDotNotation(this.data, rawName);
 
                 // Array
                 if(name.endsWith('[]')) {
@@ -232,21 +232,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 model.callback = () => {
                     // Array
                     if(name.endsWith('[]')) {
-                        if(!Array.isArray(this.data[rawName])) this.data[rawName] = [];
+                        let value = this.getValueDotNotation(this.data, rawName);
+                        if(!Array.isArray(value)) this.setValueDotNotation(this.data, rawName, []);
                         if(custom) {
                             if(model.checked) {
-                                this.data[rawName].push(custom);
+                                this.setValueDotNotation(this.data, rawName, value.push(custom));
                             } else {
-                                let idx = this.data[rawName].findIndex(v => v == custom);
-                                if(idx !== -1) this.data[rawName].splice(idx, 1);
+                                let idx = value.findIndex(v => v == custom);
+                                if(idx !== -1) this.setValueDotNotation(this.data, rawName, value.splice(idx, 1));
                             }
                         }
                     } else {
                         // Custom value
                         if(custom) {
-                            this.data[name] = model.checked ? custom : false;
+                            this.setValueDotNotation(this.data, name, (model.checked ? custom : false));
                         } else {
-                            this.data[name] = model.checked;
+                            this.setValueDotNotation(this.data, name, model.checked);
                         }
                     }
 
@@ -276,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let lazy = model.hasAttribute('r-lazy');
                 let debounce = model.getAttribute('r-debounce');
                 let rawName = name.replace('[]', '');
-                let value = this.data[rawName];
+                let value = this.getValueDotNotation(this.data, rawName);
 
                 // Array
                 if(name.endsWith('[]')) {
@@ -294,12 +295,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 model.callback = () => {
                     // Array
                     if(name.endsWith('[]')) {
-                        this.data[rawName] = [];
+                        let newValue = [];
                         Array.from(model.selectedOptions).forEach(option => {
-                            this.data[rawName].push(option.value);
+                            newValue.push(option.value);
                         });
+                        this.setValueDotNotation(this.data, rawName, newValue);
                     } else {
-                        this.data[rawName] = model.value;
+                        this.setValueDotNotation(this.data, rawName, model.value);
                     }
 
                     if(!lazy) {
@@ -350,6 +352,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 model.removeAttribute('r-debounce');
             });
         }
+
+        /**
+         * Gets a value from an object in dot notation.
+         * @param {object} object Object to get value.
+         * @param {string} path Path to search for.
+         * @returns Returns the value found.
+         */
+        getValueDotNotation(object, path) {
+            return path.split('.').reduce((a, b) => a[b], object);
+        }
+
+        /**
+         * Sets a value in an object in dot notation.
+         * @param {object} object Object to set value.
+         * @param {string|string[]} path Path to set value.
+         * @param {*} value Value to set
+         */
+        setValueDotNotation(object, path, value) {
+            if(!Array.isArray(path)) path = path.split('.');
+            if(path.length === 1) {
+                object[path[0]] = value;
+            } else {
+                if(object[path[0]])
+                    return this.setValueDotNotation(object[path[0]], path.slice(1), value);
+                else {
+                    object[path[0]] = {};
+                    return this.setValueDotNotation(object[path[0]], path.slice(1), value);
+                }
+            }
+        };
 
         /**
          * Binds actions to events.
