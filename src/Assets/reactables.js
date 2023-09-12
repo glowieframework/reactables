@@ -232,16 +232,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 model.callback = () => {
                     // Array
                     if(name.endsWith('[]')) {
-                        let value = this.getValueDotNotation(this.data, rawName);
-                        if(!Array.isArray(value)) this.setValueDotNotation(this.data, rawName, []);
+                        if(!Array.isArray(value)) value = [];
                         if(custom) {
                             if(model.checked) {
-                                this.setValueDotNotation(this.data, rawName, value.push(custom));
+                                value.push(custom);
                             } else {
                                 let idx = value.findIndex(v => v == custom);
-                                if(idx !== -1) this.setValueDotNotation(this.data, rawName, value.splice(idx, 1));
+                                if(idx !== -1) value.splice(idx, 1);
                             }
                         }
+                        this.setValueDotNotation(this.data, rawName, value);
                     } else {
                         // Custom value
                         if(custom) {
@@ -367,16 +367,16 @@ document.addEventListener('DOMContentLoaded', () => {
          * Sets a value in an object in dot notation.
          * @param {object} object Object to set value.
          * @param {string|string[]} path Path to set value.
-         * @param {*} value Value to set
+         * @param {*} value Value to set.
          */
         setValueDotNotation(object, path, value) {
             if(!Array.isArray(path)) path = path.split('.');
             if(path.length === 1) {
                 object[path[0]] = value;
             } else {
-                if(object[path[0]])
+                if(object[path[0]]) {
                     return this.setValueDotNotation(object[path[0]], path.slice(1), value);
-                else {
+                } else {
                     object[path[0]] = {};
                     return this.setValueDotNotation(object[path[0]], path.slice(1), value);
                 }

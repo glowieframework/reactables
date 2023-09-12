@@ -3,7 +3,6 @@
 
     use Glowie\Core\Element;
     use Glowie\Core\Traits\ElementTrait;
-    use JsonSerializable;
     use Util;
 
     /**
@@ -15,13 +14,23 @@
      * @license MIT
      * @link https://eugabrielsilva.tk/glowie
      */
-    class ExtendedElement extends Element implements JsonSerializable{
+    class ExtendedElement extends Element{
 
         /**
          * Object hash property name.
          * @var string
          */
         const PROP_NAME = '$$_objHash';
+
+        /**
+         * Array of other serializable core classes.
+         * @var array
+         */
+        const SERIALIZABLE_CLASSES = [
+            'Glowie\Core\Http\Cookies',
+            'Glowie\Core\Http\Session',
+            'Glowie\Core\Tools\Cache'
+        ];
 
         /**
          * Sets the value for a key in the Element data.
@@ -55,18 +64,48 @@
          */
         public function toJson(int $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK, int $depth = 512, bool $setTypes = false){
             $data = $this->toArray();
-            if($setTypes) foreach($data as &$value) $this->setPropertyType($value);
+            if($setTypes) $data = $this->iterateRecursive($data);
             return empty($data) ? '{}' : json_encode($data, $flags, $depth);
+        }
+
+        /**
+         * Iterates recursively over each object property to set hashes.
+         * @param array $data Property to iterate.
+         * @return array Returns the hashed properties.
+         */
+        private function iterateRecursive(array $data){
+            foreach($data as $key => $value){
+                if($this->isElementLike($value)){
+                    $data[$key] = $this->iterateRecursive($value->toArray());
+                }else if(is_array($value)){
+                    $data[$key] = $this->iterateRecursive($value);
+                }
+
+                $data[$key] = $this->setPropertyType($value);
+            }
+
+            return $data;
         }
 
         /**
          * Sets a property type to hash.
          * @param mixed $value Property value.
          */
-        private function setPropertyType(&$value){
-            if(Util::usesTrait($value, ElementTrait::class) && !isset($value->{self::PROP_NAME})){
-                return $value->{self::PROP_NAME} = Util::encryptString(get_class($value));
+        private function setPropertyType($value){
+            if($this->isElementLike($value) && !isset($value->{self::PROP_NAME})){
+                $value->{self::PROP_NAME} = Util::encryptString(get_class($value));
             }
+
+            return $value;
+        }
+
+        /**
+         * Checks if variable is an Element-like.
+         * @param mixed $value Variable to check.
+         * @return bool Returns true or false.
+         */
+        private function isElementLike($value){
+            return is_object($value) && (Util::usesTrait($value, ElementTrait::class) || in_array(get_class($value), self::SERIALIZABLE_CLASSES));
         }
 
         /**
@@ -74,13 +113,22 @@
          * @param mixed $value Property value.
          */
         private function invokePropertyType(&$value){
+            // Checks for hashed object
             if(is_object($value) && isset($value->{self::PROP_NAME})){
+                // Get objHash classname
                 $class = Util::decryptString($value->{self::PROP_NAME});
 
+                // Instantiate object
                 if($class && class_exists($class)){
                     $newValue = new $class();
+
+                    // Remove objHash property from object
                     unset($value->{self::PROP_NAME});
-                    if(Util::usesTrait($newValue, ElementTrait::class)) $newValue->set((array)$value);
+
+                    // Parse properties
+                    if($this->isElementLike($newValue)) $newValue->set((array)$value);
+
+                    // Return new instance
                     $value = $newValue;
                 }
             }
