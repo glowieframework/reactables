@@ -6,7 +6,7 @@
     use Util;
 
     /**
-     * Reactables extended Element instance.
+     * Reactables serializable Element instance.
      * @category Controller
      * @package glowieframework/reactables
      * @author Glowie
@@ -44,12 +44,14 @@
         public function set($key, $value = null, bool $ignoreDot = false, bool $invokeTypes = false){
             // Check for an array of parameters
             if(is_array($key)){
-                foreach($key as $k => $v) $this->set($k, $v, $ignoreDot, $invokeTypes);
+                foreach($key as $k => $v){
+                    $this->set($k, $v, $ignoreDot, $invokeTypes);
+                }
                 return $this;
             }
 
             // Invoke object types
-            if($invokeTypes) $this->invokePropertyType($value);
+            if($invokeTypes) $value = $this->invokeRecursive($value);
 
             // Call default set method
             return Element::set($key, $value, $ignoreDot);
@@ -109,10 +111,26 @@
         }
 
         /**
+         * Invokes properties recursively.
+         * @param mixed $value Property to invoke.
+         * @return mixed Returns the new property.
+         */
+        private function invokeRecursive($value){
+            if(is_object($value)){
+                foreach($value as $k => $v) $value->{$k} = $this->invokeRecursive($v);
+            }else if(is_array($value)){
+                foreach($value as $k => $v) $value[$k] = $this->invokeRecursive($v);
+            }
+
+            return $this->invokePropertyType($value);
+        }
+
+        /**
          * Invokes a property type from hash.
          * @param mixed $value Property value.
+         * @return mixed Returns the value.
          */
-        private function invokePropertyType(&$value){
+        private function invokePropertyType($value){
             // Checks for hashed object
             if(is_object($value) && isset($value->{self::PROP_NAME})){
                 // Get objHash classname
@@ -132,6 +150,9 @@
                     $value = $newValue;
                 }
             }
+
+            // Returns the value
+            return $value;
         }
 
     }
