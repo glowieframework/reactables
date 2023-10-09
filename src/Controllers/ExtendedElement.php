@@ -3,6 +3,7 @@
 
     use Glowie\Core\Element;
     use Glowie\Core\Traits\ElementTrait;
+    use Glowie\Core\Collection;
     use Util;
 
     /**
@@ -77,7 +78,7 @@
          */
         private function iterateRecursive(array $data){
             foreach($data as $key => $value){
-                if($this->isElementLike($value)){
+                if($this->isElementLike($value) || $value instanceof Collection){
                     $data[$key] = $this->iterateRecursive($value->toArray());
                 }else if(is_array($value)){
                     $data[$key] = $this->iterateRecursive($value);
@@ -96,6 +97,10 @@
         private function setPropertyType($value){
             if($this->isElementLike($value) && !isset($value->{self::PROP_NAME})){
                 $value->{self::PROP_NAME} = Util::encryptString(get_class($value));
+            }
+
+            if($value instanceof Collection && !isset($value[self::PROP_NAME])){
+                $value[self::PROP_NAME] = Util::encryptString(get_class($value));
             }
 
             return $value;
@@ -144,7 +149,24 @@
                     unset($value->{self::PROP_NAME});
 
                     // Parse properties
-                    if($this->isElementLike($newValue)) $newValue->set((array)$value);
+                    if($this->isElementLike($newValue) || $newValue instanceof Collection) $newValue->set((array)$value);
+
+                    // Return new instance
+                    $value = $newValue;
+                }
+            }else if(is_array($value) && isset($value[self::PROP_NAME])){
+                // Checks for hashed array
+                $class = Util::decryptString($value[self::PROP_NAME]);
+
+                // Instantiate object
+                if($class && class_exists($class)){
+                    $newValue = new $class();
+
+                    // Remove objHash property from array
+                    unset($value[self::PROP_NAME]);
+
+                    // Parse properties
+                    if($this->isElementLike($newValue) || $newValue instanceof Collection) $newValue->set((array)$value);
 
                     // Return new instance
                     $value = $newValue;
