@@ -759,7 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let xhr = new XMLHttpRequest();
             xhr.responseType = 'text';
             xhr.withCredentials = true;
-            xhr.open('POST', component.baseUrl + 'reactables/component', true);
+            xhr.open('POST', component.baseUrl + 'reactables/update', true);
             xhr.setRequestHeader('X-Reactables', true);
 
             // Upload start event

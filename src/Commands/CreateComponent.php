@@ -7,7 +7,8 @@
     use Util;
 
     /**
-     * Reactables create component command.
+     * Reactables component creation Firefly command.\
+     * Usage: `reactables:create-component`
      * @category Command
      * @package glowieframework/reactables
      * @author Glowie
@@ -21,8 +22,11 @@
          * The command script.
          */
         public function run(){
+            // Print title
+            $this->print('<bg="yellow"><color="black">Reactables</color></bg> ', false);
+
             // Validates the component name
-            $name = $this->argOrInput('name', 'Component name: ');
+            $name = $this->argOrInput('name', '<color="yellow">Please type the component name:</color> ');
             if(Util::isEmpty($name)) throw new ConsoleException('create-component', $this->getArgs(), 'Missing required argument "name" for this command');
 
             // Checks if the component exists
@@ -51,7 +55,6 @@
             file_put_contents($viewFile, $template);
 
             // Print results
-            $this->print('<bg="yellow"><color="black">Reactables</color></bg> ', false);
             $this->success("Component {$classname} created successfully!");
             $this->info("Controller: {$controllerFile}");
             $this->info("View: {$viewFile}");

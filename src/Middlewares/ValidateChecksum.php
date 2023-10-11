@@ -3,6 +3,7 @@
 
     use Glowie\Core\Http\Middleware;
     use Glowie\Core\Http\Session;
+    use Glowie\Plugins\Reactables\Reactables;
 
     /**
      * Reactables checksum validation middleware.
@@ -21,7 +22,7 @@
          */
         public function handle(){
             // Validates the header
-            if(!$this->request->getHeader('X-Reactables')) return false;
+            if(!Reactables::isReactablesRequest()) return false;
 
             // Retrieves the token from POST field
             $token = $this->post->checksum;

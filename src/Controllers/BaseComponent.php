@@ -13,7 +13,7 @@
     use Util;
 
     /**
-     * Reactables base component controller.
+     * Reactables base component core.
      * @category Controller
      * @package glowieframework/reactables
      * @author Glowie

@@ -7,7 +7,7 @@
     use Util;
 
     /**
-     * Reactables core controller.
+     * Controller for handling Reactables routes.
      * @category Controller
      * @package glowieframework/reactables
      * @author Glowie
@@ -15,12 +15,12 @@
      * @license MIT
      * @link https://eugabrielsilva.tk/glowie
      */
-    class Component extends Controller{
+    class Reactables extends Controller{
 
         /**
          * Handles the component update AJAX route.
          */
-        public function component(){
+        public function update(){
             // Get request data
             $data = $this->post;
             if(empty($data->name)) return;

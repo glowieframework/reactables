@@ -8,10 +8,10 @@
     use Glowie\Core\CLI\Firefly;
     use Glowie\Plugins\Reactables\Commands\CreateComponent;
     use Glowie\Plugins\Reactables\Commands\DeleteTempUploads;
-    use Glowie\Plugins\Reactables\Controllers\Component;
     use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
     use Glowie\Plugins\Reactables\Middlewares\DispatchMiddlewares;
+    use Glowie\Plugins\Reactables\Controllers\Reactables as ReactablesController;
 
     /**
      * Glowie dynamic view components plugin.
@@ -30,8 +30,8 @@
         public function register(){
             // Register the AJAX and assets routes
             Rails::groupRoutes('reactables', function(){
-                Rails::addProtectedRoute('component', [ValidateChecksum::class, DispatchMiddlewares::class], Component::class, 'component', 'post', 'reactables-component-route');
-                Rails::addRoute('assets.js', Component::class, 'assets', [], 'reactables-assets-route');
+                Rails::addProtectedRoute('update', [ValidateChecksum::class, DispatchMiddlewares::class], ReactablesController::class, 'update', 'post', 'reactables-component-route');
+                Rails::addRoute('assets.js', ReactablesController::class, 'assets', 'get', 'reactables-assets-route');
             }, true);
 
             // Register the Skeltch directives
@@ -41,6 +41,14 @@
             // Register the CLI commands
             Firefly::custom('reactables', CreateComponent::class);
             Firefly::custom('reactables', DeleteTempUploads::class);
+        }
+
+        /**
+         * Checks if the request was made using Reactables by checking the `X-Reactables` header.
+         * @return bool Returns true or false for the Reactables request.
+         */
+        public static function isReactablesRequest(){
+            return Rails::getRequest()->hasHeader('X-Reactables');
         }
 
         /**
