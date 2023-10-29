@@ -4,6 +4,7 @@
     use Glowie\Core\Element;
     use Glowie\Core\Traits\ElementTrait;
     use Glowie\Core\Collection;
+    use DateTime;
     use Util;
 
     /**
@@ -80,6 +81,8 @@
             foreach($data as $key => $value){
                 if($this->isElementLike($value) || $value instanceof Collection){
                     $data[$key] = $this->iterateRecursive($value->toArray());
+                }else if($value instanceof Hasheable){
+                    $data[$key] = $this->iterateRecursive($value->__serialize());
                 }else if(is_array($value)){
                     $data[$key] = $this->iterateRecursive($value);
                 }
@@ -95,12 +98,18 @@
          * @param mixed $value Property value.
          */
         private function setPropertyType($value){
-            if($this->isElementLike($value) && !isset($value->{self::PROP_NAME})){
+            if($this->isElementLike($value)){
                 $value->{self::PROP_NAME} = Util::encryptString(get_class($value));
-            }
-
-            if($value instanceof Collection && !isset($value[self::PROP_NAME])){
+            }else if($value instanceof Collection){
                 $value[self::PROP_NAME] = Util::encryptString(get_class($value));
+            }else if($value instanceof Hasheable){
+                $originalObject = $value;
+                $value = $value->__serialize();
+                if(!isset($value[self::PROP_NAME])) $value[self::PROP_NAME] = Util::encryptString(get_class($originalObject));
+            }else if($value instanceof DateTime){
+                $originalObject = $value;
+                $value = (array)$value;
+                if(!isset($value[self::PROP_NAME])) $value[self::PROP_NAME] = Util::encryptString(get_class($originalObject));
             }
 
             return $value;
@@ -150,6 +159,8 @@
 
                     // Parse properties
                     if($this->isElementLike($newValue) || $newValue instanceof Collection) $newValue->set((array)$value);
+                    if($newValue instanceof Hasheable) $newValue->__unserialize((array)$value);
+                    if($newValue instanceof DateTime) $newValue = $newValue->__set_state((array)$value);
 
                     // Return new instance
                     $value = $newValue;

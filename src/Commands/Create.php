@@ -8,7 +8,7 @@
 
     /**
      * Reactables component creation Firefly command.\
-     * Usage: `reactables:create-component`
+     * Usage: `reactables:create`
      * @category Command
      * @package glowieframework/reactables
      * @author Glowie
@@ -16,7 +16,7 @@
      * @license MIT
      * @link https://eugabrielsilva.tk/glowie
      */
-    class CreateComponent extends Command{
+    class Create extends Command{
 
         /**
          * The command script.
@@ -27,13 +27,13 @@
 
             // Validates the component name
             $name = $this->argOrInput('name', '<color="yellow">Please type the component name:</color> ');
-            if(Util::isEmpty($name)) throw new ConsoleException('create-component', $this->getArgs(), 'Missing required argument "name" for this command');
+            if(Util::isEmpty($name)) throw new ConsoleException('create', $this->getArgs(), 'Missing required argument "name" for this command');
 
             // Checks if the component exists
             $classname = Util::pascalCase($name);
             $viewname = Util::snakeCase($name);
             $controllerFile = Util::location('controllers/Components/' . $classname . '.php');
-            if(is_file($controllerFile)) throw new ConsoleException('create-component', $this->getArgs(), "Component {$classname} already exists!");
+            if(is_file($controllerFile)) throw new ConsoleException('create', $this->getArgs(), "Component {$classname} already exists!");
 
             // Checks components controllers folder
             if(!is_dir(Util::location('controllers/Components'))) mkdir(Util::location('controllers/Components'), 0755, true);

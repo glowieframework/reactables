@@ -455,11 +455,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let value = el.getAttribute(attr);
             let follow = el.hasAttribute('r-follow');
             let debounce = el.getAttribute('r-debounce');
+            let confirm = el.getAttribute('r-confirm');
 
             // Set binding event
             el.removeEventListener(event, el.callback);
             el.callback = event => {
                 if(key && event.key !== key) return;
+                if(confirm && !window.confirm(confirm)) return;
                 if(!follow) event.preventDefault();
                 if(debounce) {
                     if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
@@ -476,6 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.removeAttribute(attr);
             el.removeAttribute('r-follow');
             el.removeAttribute('r-debounce');
+            el.removeAttribute('r-confirm');
         }
 
         /**

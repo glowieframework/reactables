@@ -6,7 +6,7 @@
     use Glowie\Core\Http\Rails;
     use Glowie\Core\View\Skeltch;
     use Glowie\Core\CLI\Firefly;
-    use Glowie\Plugins\Reactables\Commands\CreateComponent;
+    use Glowie\Plugins\Reactables\Commands\Create;
     use Glowie\Plugins\Reactables\Commands\DeleteTempUploads;
     use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
@@ -39,7 +39,7 @@
             Skeltch::directive('reactablesAssets', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets(); ?>');
 
             // Register the CLI commands
-            Firefly::custom('reactables', CreateComponent::class);
+            Firefly::custom('reactables', Create::class);
             Firefly::custom('reactables', DeleteTempUploads::class);
         }
 
