@@ -77,6 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Toggle loading elements
             this.toggleLoads();
 
+            // Parse navigation links
+            this.parseNavigateLinks();
+
             // Run inits
             this.runInits();
         }
@@ -574,6 +577,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+
+        /**
+         * Parses navigation links.
+         */
+        parseNavigateLinks() {
+            this.find('[r-navigate]').forEach(el => {
+                // Get target URL
+                let target = el.getAttribute('href');
+
+                // Set binding event
+                el.removeEventListener('click', el.callback);
+                el.callback = event => {
+                    event.preventDefault();
+                    window.reactables.navigate(target);
+                };
+                el.addEventListener('click', el.callback);
+            });
+        }
     }
 
     /**
@@ -615,6 +636,13 @@ document.addEventListener('DOMContentLoaded', () => {
          * Initializes the Reactables core.
          */
         init() {
+            // Reset properties
+            this.components = [];
+            this.listeners = [];
+            this.errorHandler = null;
+            this.expiredHandler = null;
+            this.overflow = null;
+
             // Initialize components
             document.querySelectorAll('[r-id]').forEach(el => {
                 this.components.push(new ReactablesComponent(el));
@@ -844,6 +872,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Toggle loading elements
                         component.toggleLoads();
 
+                        // Parse navigation links
+                        component.parseNavigateLinks();
+
                         // Remove inits
                         component.removeInits();
 
@@ -884,6 +915,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Perform request
             xhr.send(data);
+        }
+
+        /**
+         * Navigates to an URL and replace document contents.
+         * @param {string} url URL to navigate to.
+         */
+        navigate(url) {
+            // Create request
+            let xhr = new XMLHttpRequest();
+            xhr.responseType = 'document';
+            xhr.withCredentials = true;
+            xhr.open('GET', url, true);
+            xhr.setRequestHeader('X-Reactables', true);
+
+            // Save current head scripts
+            let headScripts = document.head.querySelectorAll('script');
+
+            // Load event
+            xhr.onload = () => {
+                if(xhr.status == 200) {
+                    try {
+                        // Change document body
+                        document.body = xhr.response.body;
+
+                        // Change document title
+                        if(xhr.response.title) document.title = xhr.response.title;
+
+                        // Reinitialize reactables
+                        window.reactables.init();
+
+                        // Run new scripts from head
+                        xhr.response.head.querySelectorAll('script').forEach(oldScriptEl => {
+                            if(oldScriptEl.hasAttribute('r-once')) return;
+
+                            for(let script of headScripts) {
+                                if(script.attributes === oldScriptEl.attributes || script.text === oldScriptEl.text) return;
+                            }
+
+                            let newScriptEl = document.createElement('script');
+
+                            Array.from(oldScriptEl.attributes).forEach(attr => {
+                                newScriptEl.setAttribute(attr.name, attr.value)
+                            });
+
+                            let scriptText = document.createTextNode(oldScriptEl.innerHTML);
+                            newScriptEl.appendChild(scriptText);
+                            document.head.appendChild(newScriptEl);
+                        });
+
+                        // Run scripts from body
+                        document.body.querySelectorAll('script').forEach(oldScriptEl => {
+                            if(oldScriptEl.hasAttribute('r-once')) return;
+                            let newScriptEl = document.createElement('script');
+
+                            Array.from(oldScriptEl.attributes).forEach(attr => {
+                                newScriptEl.setAttribute(attr.name, attr.value)
+                            });
+
+                            let scriptText = document.createTextNode(oldScriptEl.innerHTML);
+                            newScriptEl.appendChild(scriptText);
+                            oldScriptEl.parentNode.replaceChild(newScriptEl, oldScriptEl);
+                        });
+
+                        // Call navigated event
+                        let event = new CustomEvent('reactables-navigated');
+                        document.dispatchEvent(event);
+                    } catch(error) {
+                        console.error(error);
+                        xhr.onerror();
+                    }
+                } else {
+                    // Error
+                    xhr.onerror();
+                }
+            }
+
+            // Error event
+            xhr.onerror = () => {
+                if(window.reactables.errorHandler) {
+                    window.reactables['errorHandler']({
+                        status: xhr.status,
+                        body: xhr.response.documentElement.outerHTML
+                    });
+                } else {
+                    window.reactables.showError(xhr.response.documentElement.outerHTML);
+                }
+            }
+
+            // Perform request
+            xhr.send();
         }
     }
 
