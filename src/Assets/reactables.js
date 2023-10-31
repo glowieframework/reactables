@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.checksum = data.checksum;
             this.baseUrl = data.base_url;
             this.route = data.route;
+            this.files = {};
 
             // Remove attributes
             this.removeAttrs();
@@ -74,11 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Bind stuff
             this.bind();
 
-            // Toggle loading elements
-            this.toggleLoads();
-
             // Parse navigation links
             this.parseNavigateLinks();
+
+            // Toggle loading elements
+            this.toggleLoads();
 
             // Run inits
             this.runInits();
@@ -593,6 +594,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.reactables.navigate(target);
                 };
                 el.addEventListener('click', el.callback);
+
+                // Remove attribute
+                el.removeAttribute('r-navigate');
             });
         }
     }
@@ -869,11 +873,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Dispatch events
                         component.dispatchEvents(response.events);
 
-                        // Toggle loading elements
-                        component.toggleLoads();
-
                         // Parse navigation links
                         component.parseNavigateLinks();
+
+                        // Toggle loading elements
+                        component.toggleLoads();
 
                         // Remove inits
                         component.removeInits();
@@ -930,51 +934,48 @@ document.addEventListener('DOMContentLoaded', () => {
             xhr.setRequestHeader('X-Reactables', true);
 
             // Save current head scripts
-            let headScripts = document.head.querySelectorAll('script');
+            let headScripts = Array.from(document.head.querySelectorAll('script'));
 
             // Load event
             xhr.onload = () => {
                 if(xhr.status == 200) {
                     try {
+                        // Check for redirect header
+                        let redirect = xhr.getResponseHeader('X-Reactables-Redirect');
+                        if(redirect) return window.location = redirect;
+
                         // Change document body
                         document.body = xhr.response.body;
 
-                        // Change document title
+                        // Change document title and URL
                         if(xhr.response.title) document.title = xhr.response.title;
+                        history.pushState({}, '', url);
 
                         // Reinitialize reactables
                         window.reactables.init();
 
                         // Run new scripts from head
-                        xhr.response.head.querySelectorAll('script').forEach(oldScriptEl => {
+                        if(xhr.response.head) xhr.response.head.querySelectorAll('script').forEach(oldScriptEl => {
                             if(oldScriptEl.hasAttribute('r-once')) return;
 
-                            for(let script of headScripts) {
-                                if(script.attributes === oldScriptEl.attributes || script.text === oldScriptEl.text) return;
-                            }
+                            // Check if script already exists
+                            if(headScripts.some(script => script.attributes === oldScriptEl.attributes || script.textContent === oldScriptEl.textContent)) return;
 
+                            // Create new script instance and replace it
                             let newScriptEl = document.createElement('script');
-
-                            Array.from(oldScriptEl.attributes).forEach(attr => {
-                                newScriptEl.setAttribute(attr.name, attr.value)
-                            });
-
-                            let scriptText = document.createTextNode(oldScriptEl.innerHTML);
-                            newScriptEl.appendChild(scriptText);
+                            Array.from(oldScriptEl.attributes).forEach(attr => newScriptEl.setAttribute(attr.name, attr.value));
+                            newScriptEl.textContent = oldScriptEl.textContent;
                             document.head.appendChild(newScriptEl);
                         });
 
-                        // Run scripts from body
+                        // Run all scripts from body
                         document.body.querySelectorAll('script').forEach(oldScriptEl => {
                             if(oldScriptEl.hasAttribute('r-once')) return;
+
+                            // Create new script instance and replace it
                             let newScriptEl = document.createElement('script');
-
-                            Array.from(oldScriptEl.attributes).forEach(attr => {
-                                newScriptEl.setAttribute(attr.name, attr.value)
-                            });
-
-                            let scriptText = document.createTextNode(oldScriptEl.innerHTML);
-                            newScriptEl.appendChild(scriptText);
+                            Array.from(oldScriptEl.attributes).forEach(attr => newScriptEl.setAttribute(attr.name, attr.value));
+                            newScriptEl.textContent = oldScriptEl.textContent;
                             oldScriptEl.parentNode.replaceChild(newScriptEl, oldScriptEl);
                         });
 

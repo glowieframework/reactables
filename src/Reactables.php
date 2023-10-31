@@ -52,6 +52,15 @@
         }
 
         /**
+         * Instructs a full page reload/redirect from `r-navigate` calls.
+         * @param string|null $url (Optional) Target URL. Leave blank to use the current requested URL.
+         */
+        public static function redirectNavigate(?string $url = null){
+            if(is_null($url)) $url = Rails::getRequest()->getURL();
+            Rails::getResponse()->setHeader('X-Reactables-Redirect', $url);
+        }
+
+        /**
          * Renders a component in the view.
          * @param string $component Component name to render.
          * @param array $params (Optional) Associative array of parameters to parse into the component.
