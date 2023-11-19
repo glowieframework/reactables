@@ -640,14 +640,8 @@ document.addEventListener('DOMContentLoaded', () => {
          * Initializes the Reactables core.
          */
         init() {
-            // Reset properties
-            this.components = [];
-            this.listeners = [];
-            this.errorHandler = null;
-            this.expiredHandler = null;
-            this.overflow = null;
-
             // Initialize components
+            this.components = [];
             document.querySelectorAll('[r-id]').forEach(el => {
                 this.components.push(new ReactablesComponent(el));
             });
@@ -1003,6 +997,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.reactables.showError(xhr.response.documentElement.outerHTML);
                 }
             }
+
+            // Call navigating event
+            let event = new CustomEvent('reactables-navigating');
+            document.dispatchEvent(event);
 
             // Perform request
             xhr.send();

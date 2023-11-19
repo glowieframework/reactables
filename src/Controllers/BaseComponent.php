@@ -312,6 +312,16 @@
         }
 
         /**
+         * Discards a temporary uploaded file, deleting it.
+         * @param object $file The temporary uploaded file instance.
+         * @return bool Returns true on success or false on failure.
+         */
+        final protected function discardUpload(object $file){
+            if(!isset($file->tmp_name)) throw new ComponentException('discardUpload(): Not a valid file');
+            return @unlink($file->tmp_name);
+        }
+
+        /**
          * Dispatches an event in the component.
          * @param string $name Name of the event to dispatch.
          * @param array $params (Optional) Array of params to pass with the event.

@@ -60,7 +60,7 @@
 
             // Check for redirect instruction
             $redirect = $class->getRedirectTarget();
-            if($redirect) return $this->response->setJson(['redirect' => $redirect]);
+            if($redirect) return $this->response->setJson(['status' => true, 'redirect' => $redirect]);
 
             // Refresh component
             Buffer::start();
