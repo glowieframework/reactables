@@ -36,13 +36,13 @@
         protected $rules = [];
 
         /**
-         * Array of file input models.
+         * Array of file input models and their validation rules (optional).
          * @var array
          */
         protected $files = [];
 
         /**
-         * Array of file upload validation rules.
+         * Array of global file upload validation rules.
          * @var array
          */
         protected $uploadRules = ['upload', 'max:15000'];
@@ -245,7 +245,16 @@
             if(!empty($this->files)){
 
                 // Checks for each file input
-                foreach($this->files as $input){
+                foreach($this->files as $key => $input){
+                    // Check validation ruleset
+                    if(!is_numeric($key)){
+                        $rules = $input;
+                        $input = $key;
+                    }else{
+                        $rules = [];
+                    }
+
+                    // Get request files
                     $files = $this->request->getFiles($input);
                     if(empty($files)) continue;
 
@@ -258,7 +267,7 @@
                         if(!is_writable($target)) throw new FileException('Directory "' . $target . '" is invalid or not writable');
 
                         // Validate the file
-                        if(!$this->validator->validate($file->tmp_name, $this->uploadRules, true)) continue;
+                        if(!$this->validator->validate($file->tmp_name, array_merge($this->uploadRules, $rules), true)) continue;
 
                         // Upload the file
                         $target = $target . '/' . Util::uniqueToken() . '.tmp';
