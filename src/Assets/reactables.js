@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.removeEventListener(event, el.callback);
             el.callback = event => {
                 if(key && event.key !== key) return;
-                if(confirm && !window.confirm(confirm)) return;
+                if(confirm && !window.confirm(confirm)) return event.preventDefault();
                 if(!follow) event.preventDefault();
                 if(debounce) {
                     if(el.debounceTimeout) clearTimeout(el.debounceTimeout);

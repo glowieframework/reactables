@@ -11,7 +11,7 @@
     use Glowie\Plugins\Reactables\Exception\ComponentException;
     use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
     use Glowie\Plugins\Reactables\Middlewares\DispatchMiddlewares;
-    use Glowie\Plugins\Reactables\Controllers\Reactables as ReactablesController;
+    use Glowie\Plugins\Reactables\Controllers\Reactables as Controller;
 
     /**
      * Glowie dynamic view components plugin.
@@ -30,8 +30,8 @@
         public function register(){
             // Register the AJAX and assets routes
             Rails::groupRoutes('reactables', function(){
-                Rails::addProtectedRoute('update', [ValidateChecksum::class, DispatchMiddlewares::class], ReactablesController::class, 'update', 'post', 'reactables-component-route');
-                Rails::addRoute('assets.js', ReactablesController::class, 'assets', 'get', 'reactables-assets-route');
+                Rails::addProtectedRoute('update', [ValidateChecksum::class, DispatchMiddlewares::class], Controller::class, 'update', 'post', 'reactables-component-route');
+                Rails::addRoute('assets.js', Controller::class, 'assets', 'get', 'reactables-assets-route');
             }, true);
 
             // Register the Skeltch directives
