@@ -46,6 +46,9 @@
 
             // Check method call
             if(!empty($data->method)){
+                // Trim string to avoid errors
+                $data->method = trim($data->method);
+
                 // Check magic actions
                 if($data->method == '$refresh()'){
                     // Do nothing, refresh the component only
@@ -83,7 +86,7 @@
         public function assets(){
             $this->response->setContentType('text/javascript');
             $this->response->disableCache();
-            echo file_get_contents(__DIR__ . '/../Assets/morphdom.min.js') . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');;
+            echo file_get_contents(__DIR__ . '/../Assets/morphdom.min.js') . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');
         }
 
     }

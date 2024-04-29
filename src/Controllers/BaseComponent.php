@@ -30,6 +30,12 @@
         protected $component;
 
         /**
+         * Associative array of initial component attributes.
+         * @var array
+         */
+        protected $attributes = [];
+
+        /**
          * Associative array of validation rules.
          * @var array
          */
@@ -79,9 +85,10 @@
 
         /**
          * Initializes the component core.
+         * @param bool $withAttributes (Optional) Initialize with default attributes.
          */
-        final public function initializeComponent(){
-            $this->component = new ExtendedElement();
+        final public function initializeComponent(bool $withAttributes = false){
+            $this->component = new ExtendedElement($withAttributes ? $this->attributes : []);
             $this->validator = new Validator();
             $this->id = Util::uniqueToken();
         }

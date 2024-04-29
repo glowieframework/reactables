@@ -23,6 +23,9 @@ Reactables is a plugin designed to create dynamic and reactive view components w
 - Completely SEO friendly
 - Incredibly lightweight and no performance impacts
 
+## Documentation
+Documentation is available [in our website](https://gabrielsilva.dev.br/glowie/reactables).
+
 ## Credits
 Reactables and Glowie are currently being developed by [Gabriel Silva](https://gabrielsilva.dev.br).
 

@@ -56,7 +56,7 @@
          * @param string|null $url (Optional) Target URL. Leave blank to use the current requested URL.
          */
         public static function redirectNavigate(?string $url = null){
-            if(is_null($url)) $url = Rails::getRequest()->getURL();
+            if(is_null($url)) $url = Rails::getRequest()->getPreviousUrl();
             Rails::getResponse()->setHeader('X-Reactables-Redirect', $url);
         }
 
@@ -66,12 +66,19 @@
          * @param array $params (Optional) Associative array of parameters to parse into the component.
          */
         public static function renderComponent(string $component, array $params = []){
+            // Find component class
             $class = '\Glowie\Controllers\Components\\' . Util::pascalCase($component);
             if(!class_exists($class)) throw new ComponentException('Component "' . $component . '" does not exist');
+
+            // Create and initialize class
             $class = new $class;
-            $class->initializeComponent();
-            $class->fillComponentParams($params);
+            $class->initializeComponent(true);
+
+            // Run create() and fill initial parameters
             if(is_callable([$class, 'create'])) $class->create();
+            $class->fillComponentParams($params);
+
+            // Fill query and call make() method
             $class->fillQueryParams();
             $class->make();
         }
