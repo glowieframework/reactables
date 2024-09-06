@@ -1,29 +1,28 @@
 <?php
-    namespace Glowie\Plugins\Reactables\Controllers;
+
+namespace Glowie\Plugins\Reactables\Controllers;
+
+/**
+ * Hasheable interface for Reactables objects.
+ * @category Interface
+ * @package glowieframework/reactables
+ * @author Glowie
+ * @copyright Copyright (c) Glowie
+ * @license MIT
+ * @link https://gabrielsilva.dev.br/glowie/reactables
+ */
+interface Hasheable
+{
 
     /**
-     * Hasheable interface for Reactables objects.
-     * @category Interface
-     * @package glowieframework/reactables
-     * @author Glowie
-     * @copyright Copyright (c) Glowie
-     * @license MIT
-     * @link https://gabrielsilva.dev.br/glowie
+     * Returns the class data to be stored in the JSON object.
+     * @return array Should return an associative array with the data you need.
      */
-    interface Hasheable{
+    public function __serialize(): array;
 
-        /**
-         * Returns the class data to be stored in the JSON object.
-         * @return array Should return an associative array with the data you need.
-         */
-        public function __serialize() : array;
-
-        /**
-         * Receives the JSON object stored data back to the class.
-         * @param array $data Associative array with the previously serialized data.
-         */
-        public function __unserialize(array $data) : void;
-
-    }
-
-?>
+    /**
+     * Receives the JSON object stored data back to the class.
+     * @param array $data Associative array with the previously serialized data.
+     */
+    public function __unserialize(array $data): void;
+}

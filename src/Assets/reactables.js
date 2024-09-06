@@ -788,7 +788,6 @@ document.addEventListener('DOMContentLoaded', () => {
             xhr.withCredentials = true;
             xhr.open('POST', component.baseUrl + 'reactables/update', true);
             xhr.setRequestHeader('X-Reactables', true);
-            xhr.setRequestHeader('Referer', location.href);
 
             // Upload start event
             xhr.upload.onloadstart = () => {
@@ -925,7 +924,6 @@ document.addEventListener('DOMContentLoaded', () => {
             xhr.withCredentials = true;
             xhr.open('GET', url, true);
             xhr.setRequestHeader('X-Reactables', true);
-            xhr.setRequestHeader('Referer', location.href);
 
             // Save current head scripts
             let headScripts = Array.from(document.head.querySelectorAll('script'));
