@@ -923,12 +923,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // Return unique element key
                             getNodeKey: node => {
-                                let key = node.getAttribute('r:key');
-                                return key ? key : node.id;
+                                return node.getAttribute('r:key') || node.id;
                             },
 
-                            // Prevent virtual DOM problems
+                            // Prevent nested components to be updated
                             onBeforeElUpdated: (from, to) => {
+                                if(from.hasAttribute('r:id') && from.getAttribute('r:id') !== component.id) return false;
                                 return !from.isEqualNode(to);
                             }
 
