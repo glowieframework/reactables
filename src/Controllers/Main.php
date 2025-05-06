@@ -14,7 +14,7 @@ use Util;
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
- * @link https://gabrielsilva.dev.br/glowie/reactables
+ * @link https://glowie.gabrielsilva.dev.br/reactables
  */
 class Main extends Controller
 {
@@ -39,7 +39,7 @@ class Main extends Controller
         // Initialize component data
         $class->initializeComponent();
         if (!empty($data->id)) $class->setComponentId($data->id);
-        if (!empty($data->data)) $class->fillComponentParams((array)json_decode($data->data), true);
+        if (!empty($data->data)) $class->fillComponentData((array)json_decode($data->data), true);
 
         // Handle uploads
         if (!empty($_FILES)) $class->handleUploads();
@@ -88,8 +88,7 @@ class Main extends Controller
      */
     public function assets()
     {
-        $this->response->setContentType('text/javascript');
-        $this->response->disableCache();
-        echo file_get_contents(__DIR__ . '/../Assets/morphdom.min.js') . file_get_contents(__DIR__ . '/../Assets/reactables.min.js');
+        $this->response->disableCache()
+            ->setFile(__DIR__ . '/../Assets/dist/reactables.dist.min.js');
     }
 }

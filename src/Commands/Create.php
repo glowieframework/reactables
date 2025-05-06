@@ -8,14 +8,14 @@ use Glowie\Core\Exception\FileException;
 use Util;
 
 /**
- * Reactables component creation Firefly command.\
- * Usage: `reactables:create`
+ * Reactables component creation Firefly command.
  * @category Command
+ * @example Usage: `reactables:create`
  * @package glowieframework/reactables
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
- * @link https://gabrielsilva.dev.br/glowie/reactables
+ * @link https://glowie.gabrielsilva.dev.br/reactables
  */
 class Create extends Command
 {

@@ -8,14 +8,14 @@ use Config;
 use Util;
 
 /**
- * Reactables delete temporary uploads Firefly command.\
- * Usage: `reactables:delete-temp-uploads`
+ * Reactables delete temporary uploads Firefly command.
  * @category Command
+ * @example Usage: `reactables:delete-temp-uploads`
  * @package glowieframework/reactables
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
- * @link https://gabrielsilva.dev.br/glowie/reactables
+ * @link https://glowie.gabrielsilva.dev.br/reactables
  */
 class DeleteTempUploads extends Command
 {

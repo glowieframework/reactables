@@ -9,7 +9,7 @@ namespace Glowie\Plugins\Reactables\Controllers;
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
- * @link https://gabrielsilva.dev.br/glowie/reactables
+ * @link https://glowie.gabrielsilva.dev.br/reactables
  */
 interface Hasheable
 {

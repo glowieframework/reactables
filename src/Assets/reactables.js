@@ -60,8 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor(el) {
             // Parse component
             this.el = el;
-            let data = JSON.parse(this.el.getAttribute('r-data'));
-            this.id = this.el.getAttribute('r-id');
+            let data = JSON.parse(this.el.getAttribute('r:data'));
+            this.id = this.el.getAttribute('r:id');
             this.name = data.name;
             this.data = JSON.parse(data.data);
             this.checksum = data.checksum;
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * @returns {Element[]} Returns an array with the filtered elements.
          */
         find(query) {
-            return Array.from(this.el.querySelectorAll(query)).filter(el => !el.closest('[r-id]'));
+            return Array.from(this.el.querySelectorAll(query)).filter(el => el.closest('[r\\:id]') === this.el);
         }
 
         /**
@@ -100,54 +100,54 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         toggleLoads(ready = true) {
             if(ready) {
-                this.find('[r-loading]').forEach(el => {
+                this.find('[r\\:loading]').forEach(el => {
                     el.style.display = 'none';
                 });
 
-                this.find('[r-ready]').forEach(el => {
-                    let attr = el.getAttribute('r-ready');
+                this.find('[r\\:ready]').forEach(el => {
+                    let attr = el.getAttribute('r:ready');
                     el.style.display = attr.length ? attr : 'inline-block';
                 });
 
-                this.find('[r-loading-class]').forEach(el => {
-                    el.classList.remove(el.getAttribute('r-loading-class'));
+                this.find('[r\\:loading-class]').forEach(el => {
+                    el.classList.remove(el.getAttribute('r:loading-class'));
                 });
 
-                this.find('[r-ready-class]').forEach(el => {
-                    el.classList.add(el.getAttribute('r-ready-class'));
+                this.find('[r\\:ready-class]').forEach(el => {
+                    el.classList.add(el.getAttribute('r:ready-class'));
                 });
 
-                this.find('[r-loading-attr]').forEach(el => {
-                    el.removeAttribute(el.getAttribute('r-loading-attr'));
+                this.find('[r\\:loading-attr]').forEach(el => {
+                    el.removeAttribute(el.getAttribute('r:loading-attr'));
                 });
 
-                this.find('[r-ready-attr]').forEach(el => {
-                    el.setAttribute(el.getAttribute('r-loading-attr'), 'true');
+                this.find('[r\\:ready-attr]').forEach(el => {
+                    el.setAttribute(el.getAttribute('r:loading-attr'), 'true');
                 });
             } else {
-                this.find('[r-loading]').forEach(el => {
-                    let attr = el.getAttribute('r-loading');
+                this.find('[r\\:loading]').forEach(el => {
+                    let attr = el.getAttribute('r:loading');
                     el.style.display = attr.length ? attr : 'inline-block';
                 });
 
-                this.find('[r-ready]').forEach(el => {
+                this.find('[r\\:ready]').forEach(el => {
                     el.style.display = 'none';
                 });
 
-                this.find('[r-loading-class]').forEach(el => {
-                    el.classList.add(el.getAttribute('r-loading-class'));
+                this.find('[r\\:loading-class]').forEach(el => {
+                    el.classList.add(el.getAttribute('r:loading-class'));
                 });
 
-                this.find('[r-ready-class]').forEach(el => {
-                    el.classList.remove(el.getAttribute('r-ready-class'));
+                this.find('[r\\:ready-class]').forEach(el => {
+                    el.classList.remove(el.getAttribute('r:ready-class'));
                 });
 
-                this.find('[r-loading-attr]').forEach(el => {
-                    el.setAttribute(el.getAttribute('r-loading-attr'), 'true');
+                this.find('[r\\:loading-attr]').forEach(el => {
+                    el.setAttribute(el.getAttribute('r:loading-attr'), 'true');
                 });
 
-                this.find('[r-ready-attr]').forEach(el => {
-                    el.removeAttribute(el.getAttribute('r-loading-attr'));
+                this.find('[r\\:ready-attr]').forEach(el => {
+                    el.removeAttribute(el.getAttribute('r:loading-attr'));
                 });
             }
         }
@@ -156,8 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
          * Removes the attributes from the component.
          */
         removeAttrs() {
-            this.el.removeAttribute('r-id');
-            this.el.removeAttribute('r-data');
+            this.el.removeAttribute('r:data');
         }
 
         /**
@@ -174,66 +173,85 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         bindModels() {
             // Inputs
-            this.find('input[type=text][r-model], input[type=date][r-model], input[type=datetime-local][r-model], input[type=email][r-model], input[type=number][r-model], input[type=month][r-model], input[type=password][r-model], input[type=range][r-model], input[type=search][r-model], input[type=tel][r-model], input[type=time][r-model], input[type=url][r-model], input[type=color][r-model], input[type=week][r-model], textarea[r-model]').forEach(model => {
+            this.find('input[type=text][r\\:model], input[type=date][r\\:model], input[type=datetime-local][r\\:model], input[type=email][r\\:model], input[type=number][r\\:model], input[type=month][r\\:model], input[type=password][r\\:model], input[type=range][r\\:model], input[type=search][r\\:model], input[type=tel][r\\:model], input[type=time][r\\:model], input[type=url][r\\:model], input[type=color][r\\:model], input[type=week][r\\:model], textarea[r\\:model]').forEach(model => {
+                // Get properties
+                const name = model.getAttribute('r:model').trim();
+                const lazy = model.hasAttribute('r:lazy');
+                const debounce = model.getAttribute('r:debounce') || 250;
+                const value = this.getValueDotNotation(this.data, name);
+
                 // Set initial value
-                let name = model.getAttribute('r-model').trim();
-                let lazy = model.hasAttribute('r-lazy');
-                let debounce = model.getAttribute('r-debounce') || 250;
-                let value = this.getValueDotNotation(this.data, name);
                 if(value !== undefined) model.value = value;
 
+                // Remove previous binding event
+                model.removeEventListener('input', model.listenerRef);
+
                 // Set binding event
-                model.removeEventListener('input', model.callback);
-                model.callback = () => {
+                model.listenerRef = () => {
+                    // Sets the value
                     this.setValueDotNotation(this.data, name, model.value);
+
+                    // On lazy update, ignore the refresh
                     if(lazy) return;
+
+                    // Checks for deboucing
                     if(debounce) {
-                        if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
-                        model.debounceTimeout = setTimeout(() => {
+                        // Clear previous debouncing event
+                        if(model.timeoutRef) clearTimeout(model.timeoutRef);
+
+                        // Set debouncing event
+                        model.timeoutRef = setTimeout(() => {
                             window.reactables.refresh(this, model);
                         }, debounce);
                     } else {
+                        // No debounce, refresh instantly
                         window.reactables.refresh(this, model);
                     }
                 };
-                model.addEventListener('input', model.callback);
+
+                // Sets the listener
+                model.addEventListener('input', model.listenerRef);
 
                 // Remove attributes
-                model.removeAttribute('r-model');
-                model.removeAttribute('r-lazy');
-                model.removeAttribute('r-debounce');
+                model.removeAttribute('r:model');
+                model.removeAttribute('r:lazy');
+                model.removeAttribute('r:debounce');
             });
 
             // Checkboxes and radios
-            this.find('input[type=checkbox][r-model], input[type=radio][r-model]').forEach(model => {
-                // Set initial value
-                let name = model.getAttribute('r-model').trim();
-                let lazy = model.hasAttribute('r-lazy');
-                let debounce = model.getAttribute('r-debounce');
-                let rawName = name.replace('[]', '');
-                let custom = model.getAttribute('value');
-                let value = this.getValueDotNotation(this.data, rawName);
+            this.find('input[type=checkbox][r\\:model], input[type=radio][r\\:model]').forEach(model => {
+                // Get properties
+                const name = model.getAttribute('r:model').trim();
+                const lazy = model.hasAttribute('r:lazy');
+                const debounce = model.getAttribute('r:debounce');
+                const rawName = name.replace('[]', '');
+                const custom = model.getAttribute('value');
+                const value = this.getValueDotNotation(this.data, rawName);
 
-                // Array
+                // Set initial value for array
                 if(name.endsWith('[]')) {
                     if(Array.isArray(value) && custom) {
                         if(value.some(v => v == custom)) model.checked = true;
                     }
                 } else {
+                    // Set initial single value
                     if(value !== undefined) {
                         // Custom value
                         if(custom) {
                             if(value == custom) model.checked = true;
                         } else {
+                            // Default value
                             model.checked = value;
                         }
                     }
                 }
 
+                // Clear previous binding event
+                model.removeEventListener('input', model.listenerRef);
+
                 // Set binding event
-                model.removeEventListener('input', model.callback);
-                model.callback = () => {
-                    // Array
+                model.listenerRef = () => {
+                    // Set value for array
                     if(name.endsWith('[]')) {
                         if(!Array.isArray(value)) value = [];
                         if(custom) {
@@ -244,9 +262,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if(idx !== -1) value.splice(idx, 1);
                             }
                         }
+
                         this.setValueDotNotation(this.data, rawName, value);
                     } else {
-                        // Custom value
+                        // Sets a single value, custom or default
                         if(custom) {
                             this.setValueDotNotation(this.data, name, (model.checked ? custom : false));
                         } else {
@@ -254,35 +273,43 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
 
+                    // Ignore on lazy updates
                     if(lazy) return;
 
+                    // Checks for debouncing
                     if(debounce) {
-                        if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
-                        model.debounceTimeout = setTimeout(() => {
+                        // Clear previous timeout
+                        if(model.timeoutRef) clearTimeout(model.timeoutRef);
+
+                        // Sets the new timeout
+                        model.timeoutRef = setTimeout(() => {
                             window.reactables.refresh(this, model);
                         }, debounce);
                     } else {
+                        // Or just refresh instantly
                         window.reactables.refresh(this, model);
                     }
                 };
-                model.addEventListener('input', model.callback);
+
+                // Adds the listener
+                model.addEventListener('input', model.listenerRef);
 
                 // Remove attributes
-                model.removeAttribute('r-model');
-                model.removeAttribute('r-lazy');
-                model.removeAttribute('r-debounce');
+                model.removeAttribute('r:model');
+                model.removeAttribute('r:lazy');
+                model.removeAttribute('r:debounce');
             });
 
             // Selects
-            this.find('select[r-model]').forEach(model => {
-                // Set initial value
-                let name = model.getAttribute('r-model').trim();
-                let lazy = model.hasAttribute('r-lazy');
-                let debounce = model.getAttribute('r-debounce');
-                let rawName = name.replace('[]', '');
-                let value = this.getValueDotNotation(this.data, rawName);
+            this.find('select[r\\:model]').forEach(model => {
+                // Get properties
+                const name = model.getAttribute('r:model').trim();
+                const lazy = model.hasAttribute('r:lazy');
+                const debounce = model.getAttribute('r:debounce');
+                const rawName = name.replace('[]', '');
+                const value = this.getValueDotNotation(this.data, rawName);
 
-                // Array
+                // Sets the initial value for array
                 if(name.endsWith('[]')) {
                     if(Array.isArray(value)) {
                         Array.from(model.options).forEach(option => {
@@ -290,13 +317,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     }
                 } else {
+                    // Sets initial single value
                     if(value !== undefined) model.value = value;
                 }
 
-                // Set binding event
-                model.removeEventListener('input', model.callback);
-                model.callback = () => {
-                    // Array
+                // Clear previous binding event
+                model.removeEventListener('input', model.listenerRef);
+
+                // Creates the listener
+                model.listenerRef = () => {
+                    // For arrays of values
                     if(name.endsWith('[]')) {
                         let newValue = [];
                         Array.from(model.selectedOptions).forEach(option => {
@@ -304,54 +334,76 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         this.setValueDotNotation(this.data, rawName, newValue);
                     } else {
+                        // For single value
                         this.setValueDotNotation(this.data, rawName, model.value);
                     }
 
+                    // Ignore lazy updates
                     if(lazy) return;
 
+                    // Checks for debouncing
                     if(debounce) {
-                        if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
-                        model.debounceTimeout = setTimeout(() => {
+                        // Clear previous timeout ref
+                        if(model.timeoutRef) clearTimeout(model.timeoutRef);
+
+                        // Creates the new timeout
+                        model.timeoutRef = setTimeout(() => {
                             window.reactables.refresh(this, model);
                         }, debounce);
                     } else {
+                        // Or update instantly
                         window.reactables.refresh(this, model);
                     }
                 };
-                model.addEventListener('input', model.callback);
+
+                // Adds the listener
+                model.addEventListener('input', model.listenerRef);
 
                 // Remove attributes
-                model.removeAttribute('r-model');
-                model.removeAttribute('r-lazy');
-                model.removeAttribute('r-debounce');
+                model.removeAttribute('r:model');
+                model.removeAttribute('r:lazy');
+                model.removeAttribute('r:debounce');
             });
 
             // File inputs
-            this.find('input[type=file][r-model]').forEach(model => {
-                let name = model.getAttribute('r-model').trim();
-                let lazy = model.hasAttribute('r-lazy');
-                let debounce = model.getAttribute('r-debounce');
+            this.find('input[type=file][r\\:model]').forEach(model => {
+                const name = model.getAttribute('r:model').trim();
+                const lazy = model.hasAttribute('r:lazy');
+                const debounce = model.getAttribute('r:debounce');
 
-                // Set binding event
-                model.removeEventListener('input', model.callback);
-                model.callback = () => {
+                // Clear previous binding event
+                model.removeEventListener('input', model.listenerRef);
+
+                // Creates a new listener
+                model.listenerRef = () => {
+                    // Get the selected files
                     this.files[name] = model.files;
+
+                    // Ignore on lazy updates
                     if(lazy) return;
+
+                    // Checks for debouncing
                     if(debounce) {
-                        if(model.debounceTimeout) clearTimeout(model.debounceTimeout);
-                        model.debounceTimeout = setTimeout(() => {
+                        // Clears previous timeout
+                        if(model.timeoutRef) clearTimeout(model.timeoutRef);
+
+                        // Sets the new timeout
+                        model.timeoutRef = setTimeout(() => {
                             window.reactables.refresh(this, model);
                         }, debounce);
                     } else {
+                        // Or update instantly
                         window.reactables.refresh(this, model);
                     }
                 };
-                model.addEventListener('input', model.callback);
+
+                // Adds the listener
+                model.addEventListener('input', model.listenerRef);
 
                 // Remove attributes
-                model.removeAttribute('r-model');
-                model.removeAttribute('r-lazy');
-                model.removeAttribute('r-debounce');
+                model.removeAttribute('r:model');
+                model.removeAttribute('r:lazy');
+                model.removeAttribute('r:debounce');
             });
         }
 
@@ -390,58 +442,58 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         bindEvents() {
             // Submit
-            this.find('[r-submit]').forEach(el => {
-                this.defaultEventBinder(el, 'submit', 'r-submit');
+            this.find('[r\\:submit]').forEach(el => {
+                this.defaultEventBinder(el, 'submit', 'r:submit');
             });
 
             // Change
-            this.find('[r-change]').forEach(el => {
-                this.defaultEventBinder(el, 'change', 'r-change');
+            this.find('[r\\:change]').forEach(el => {
+                this.defaultEventBinder(el, 'change', 'r:change');
             });
 
             // Focus
-            this.find('[r-focus]').forEach(el => {
-                this.defaultEventBinder(el, 'focus', 'r-focus');
+            this.find('[r\\:focus]').forEach(el => {
+                this.defaultEventBinder(el, 'focus', 'r:focus');
             });
 
             // Blur
-            this.find('[r-blur]').forEach(el => {
-                this.defaultEventBinder(el, 'blur', 'r-blur');
+            this.find('[r\\:blur]').forEach(el => {
+                this.defaultEventBinder(el, 'blur', 'r:blur');
             });
 
             // Click
-            this.find('[r-click]').forEach(el => {
-                this.defaultEventBinder(el, 'click', 'r-click');
+            this.find('[r\\:click]').forEach(el => {
+                this.defaultEventBinder(el, 'click', 'r:click');
             });
 
             // Mouse hover
-            this.find('[r-hover]').forEach(el => {
-                this.defaultEventBinder(el, 'mouseover', 'r-hover');
+            this.find('[r\\:hover]').forEach(el => {
+                this.defaultEventBinder(el, 'mouseover', 'r:hover');
             });
 
             // Mouse move
-            this.find('[r-move]').forEach(el => {
-                this.defaultEventBinder(el, 'mousemove', 'r-move');
+            this.find('[r\\:move]').forEach(el => {
+                this.defaultEventBinder(el, 'mousemove', 'r:move');
             });
 
             // Mouse leave
-            this.find('[r-leave]').forEach(el => {
-                this.defaultEventBinder(el, 'mouseleave', 'r-leave');
+            this.find('[r\\:leave]').forEach(el => {
+                this.defaultEventBinder(el, 'mouseleave', 'r:leave');
             });
 
             // Enter key
-            this.find('[r-enter]').forEach(el => {
-                this.defaultEventBinder(el, 'keydown', 'r-enter', 'Enter');
+            this.find('[r\\:enter]').forEach(el => {
+                this.defaultEventBinder(el, 'keydown', 'r:enter', 'Enter');
             });
 
             // Tab key
-            this.find('[r-tab]').forEach(el => {
-                this.defaultEventBinder(el, 'keydown', 'r-tab', 'Tab');
+            this.find('[r\\:tab]').forEach(el => {
+                this.defaultEventBinder(el, 'keydown', 'r:tab', 'Tab');
             });
 
             // Esc key
-            this.find('[r-esc]').forEach(el => {
-                this.defaultEventBinder(el, 'keydown', 'r-esc', 'Escape');
+            this.find('[r\\:esc]').forEach(el => {
+                this.defaultEventBinder(el, 'keydown', 'r:esc', 'Escape');
             });
         }
 
@@ -453,66 +505,92 @@ document.addEventListener('DOMContentLoaded', () => {
          * @param {string|false} key Keypress validator.
          */
         defaultEventBinder(el, event, attr, key = false) {
-            // Get value
-            let value = el.getAttribute(attr).trim();
-            let follow = el.hasAttribute('r-follow');
-            let debounce = el.getAttribute('r-debounce');
-            let confirm = el.getAttribute('r-confirm');
+            // Get properties
+            const value = el.getAttribute(attr).trim();
+            const follow = el.hasAttribute('r:follow');
+            const debounce = el.getAttribute('r:debounce');
+            const confirm = el.getAttribute('r:confirm');
 
-            // Set binding event
-            el.removeEventListener(event, el.callback);
-            el.callback = event => {
-                if(key && event.key !== key) return;
-                if(confirm && !window.confirm(confirm)) return event.preventDefault();
-                if(!follow) event.preventDefault();
+            // Clear previous binding event
+            const refName = event + 'Ref';
+            el.removeEventListener(event, el[refName]);
+
+            // Creates the binding event
+            el[refName] = e => {
+                // Checks for key input
+                if(key && e.key !== key) return;
+
+                // Checks for confirmation
+                if(confirm && !window.confirm(confirm)) return e.preventDefault();
+
+                // Follow default event
+                if(!follow) e.preventDefault();
+
+                // Checks for debouncings
                 if(debounce) {
-                    if(el.debounceTimeout) clearTimeout(el.debounceTimeout);
-                    el.debounceTimeout = setTimeout(() => {
+                    // Clear previous debouncing event
+                    const debounceRefName = event + 'DebounceRef';
+                    if(el[debounceRefName]) clearTimeout(el[debounceRefName]);
+
+                    // Creates the debouncing event
+                    el[debounceRefName] = setTimeout(() => {
                         window.reactables.refresh(this, el, value);
                     }, debounce);
                 } else {
+                    // Or updates instantly
                     window.reactables.refresh(this, el, value);
                 }
             };
-            el.addEventListener(event, el.callback);
+
+            // Adds the listener
+            el.addEventListener(event, el[refName]);
 
             // Remove attributes
             el.removeAttribute(attr);
-            el.removeAttribute('r-follow');
-            el.removeAttribute('r-debounce');
-            el.removeAttribute('r-confirm');
+            el.removeAttribute('r:follow');
+            el.removeAttribute('r:debounce');
+            el.removeAttribute('r:confirm');
         }
 
         /**
          * Binds the repeat calls.
          */
         bindRepeats() {
-            this.find('[r-repeat][r-interval]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-repeat').trim();
-                let interval = el.getAttribute('r-interval');
-                let timeout = el.getAttribute('r-timeout');
+            this.find('[r\\:repeat][r\\:interval]').forEach(el => {
+                // Get properties
+                const value = el.getAttribute('r:repeat').trim();
+                const interval = el.getAttribute('r:interval');
+                const timeout = el.getAttribute('r:timeout');
 
-                // Set interval
+                // Checks for timeout
                 if(timeout) {
-                    if(el.timeoutInterval) clearTimeout(el.timeoutInterval);
-                    el.timeoutInterval = setTimeout(() => {
-                        if(el.repeatInterval) clearInterval(el.repeatInterval);
-                        el.repeatInterval = setInterval(() => {
+                    // Clear previous timeout
+                    if(el.repeatTimeoutRef) clearTimeout(el.repeatTimeoutRef);
+
+                    // Create new timeout
+                    el.repeatTimeoutRef = setTimeout(() => {
+                        // Clear previous interval
+                        if(el.repeatIntervalRef) clearInterval(el.repeatIntervalRef);
+
+                        // Creates new interval
+                        el.repeatIntervalRef = setInterval(() => {
                             window.reactables.refresh(this, el, value);
                         }, interval);
                     }, timeout);
                 } else {
-                    if(el.repeatInterval) clearInterval(el.repeatInterval);
-                    el.repeatInterval = setInterval(() => {
+                    // Clear previous interval
+                    if(el.repeatIntervalRef) clearInterval(el.repeatIntervalRef);
+
+                    // Creates new interval
+                    el.repeatIntervalRef = setInterval(() => {
                         window.reactables.refresh(this, el, value);
                     }, interval);
                 }
 
                 // Remove attributes
-                el.removeAttribute('r-repeat');
-                el.removeAttribute('r-interval');
-                el.removeAttribute('r-timeout');
+                el.removeAttribute('r:repeat');
+                el.removeAttribute('r:interval');
+                el.removeAttribute('r:timeout');
             });
         }
 
@@ -520,25 +598,28 @@ document.addEventListener('DOMContentLoaded', () => {
          * Run init functions.
          */
         runInits() {
-            this.find('[r-init]').forEach(el => {
-                // Get value
-                let value = el.getAttribute('r-init').trim();
-                let timeout = el.getAttribute('r-timeout');
-                let timeoutInterval = null;
+            this.find('[r\\:init]').forEach(el => {
+                // Get properties
+                const value = el.getAttribute('r:init').trim();
+                const timeout = el.getAttribute('r:timeout');
 
-                // Run method
+                // Checks for timeout
                 if(timeout) {
-                    if(timeoutInterval) clearTimeout(timeoutInterval);
-                    timeoutInterval = setTimeout(() => {
+                    // Clear previous timeout
+                    if(el.initTimeoutRef) clearTimeout(el.initTimeoutRef);
+
+                    // Set new timeout
+                    el.initTimeoutRef = setTimeout(() => {
                         window.reactables.refresh(this, el, value);
                     }, timeout);
                 } else {
+                    // Update instantly
                     window.reactables.refresh(this, el, value);
                 }
 
                 // Remove attributes
-                el.removeAttribute('r-init');
-                el.removeAttribute('r-timeout');
+                el.removeAttribute('r:init');
+                el.removeAttribute('r:timeout');
             });
         }
 
@@ -546,10 +627,10 @@ document.addEventListener('DOMContentLoaded', () => {
          * Remove init attributes.
          */
         removeInits() {
-            this.find('[r-init]').forEach(el => {
+            this.find('[r\\:init]').forEach(el => {
                 // Remove attributes
-                el.removeAttribute('r-init');
-                el.removeAttribute('r-timeout');
+                el.removeAttribute('r:init');
+                el.removeAttribute('r:timeout');
             });
         }
 
@@ -581,20 +662,24 @@ document.addEventListener('DOMContentLoaded', () => {
          * Parses navigation links.
          */
         parseNavigateLinks() {
-            this.find('[r-navigate]').forEach(el => {
+            this.find('[r\\:navigate]').forEach(el => {
                 // Get target URL
                 let target = el.getAttribute('href').trim();
 
-                // Set binding event
-                el.removeEventListener('click', el.callback);
-                el.callback = event => {
+                // Clear previous binding event
+                el.removeEventListener('click', el.navigateRef);
+
+                // Sets the new event
+                el.navigateRef = event => {
                     event.preventDefault();
                     window.reactables.navigate(target);
                 };
-                el.addEventListener('click', el.callback);
+
+                // Add listener
+                el.addEventListener('click', el.navigateRef);
 
                 // Remove attribute
-                el.removeAttribute('r-navigate');
+                el.removeAttribute('r:navigate');
             });
         }
     }
@@ -640,7 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
         init() {
             // Initialize components
             this.components = [];
-            document.querySelectorAll('[r-id]').forEach(el => {
+            document.querySelectorAll('[r\\:id]').forEach(el => {
                 this.components.push(new ReactablesComponent(el));
             });
 
@@ -830,7 +915,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // Parse new elements
                             onNodeAdded: node => {
-                                if(node.hasAttribute('r-id')) {
+                                if(node.hasAttribute('r:id')) {
                                     window.reactables.components.push(new ReactablesComponent(node));
                                     node.skipAddingChildren = true;
                                 }
@@ -838,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // Return unique element key
                             getNodeKey: node => {
-                                let key = node.getAttribute('r-key');
+                                let key = node.getAttribute('r:key');
                                 return key ? key : node.id;
                             },
 
@@ -948,7 +1033,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         // Run new scripts from head
                         if(xhr.response.head) xhr.response.head.querySelectorAll('script').forEach(oldScriptEl => {
-                            if(oldScriptEl.hasAttribute('r-once')) return;
+                            if(oldScriptEl.hasAttribute('r:once')) return;
 
                             // Check if script already exists
                             if(headScripts.some(script => script.attributes === oldScriptEl.attributes || script.textContent === oldScriptEl.textContent)) return;
@@ -962,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         // Run all scripts from body
                         document.body.querySelectorAll('script').forEach(oldScriptEl => {
-                            if(oldScriptEl.hasAttribute('r-once')) return;
+                            if(oldScriptEl.hasAttribute('r:once')) return;
 
                             // Create new script instance and replace it
                             let newScriptEl = document.createElement('script');

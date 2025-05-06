@@ -20,22 +20,22 @@ use Util;
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
- * @link https://gabrielsilva.dev.br/glowie/reactables
+ * @link https://glowie.gabrielsilva.dev.br/reactables
  */
 abstract class BaseComponent extends Controller
 {
 
     /**
-     * Component parameters.
+     * Component properties.
      * @var ExtendedElement
      */
-    protected $component;
+    protected $props;
 
     /**
-     * Associative array of initial component attributes.
+     * Associative array of initial component properties.
      * @var array
      */
-    protected $attributes = [];
+    protected $initialProps = [];
 
     /**
      * Associative array of validation rules.
@@ -87,11 +87,11 @@ abstract class BaseComponent extends Controller
 
     /**
      * Initializes the component core.
-     * @param bool $withAttributes (Optional) Initialize with default attributes.
+     * @param bool $initialize (Optional) Initialize with default properties.
      */
-    final public function initializeComponent(bool $withAttributes = false)
+    final public function initializeComponent(bool $initialize = false)
     {
-        $this->component = new ExtendedElement($withAttributes ? $this->attributes : []);
+        $this->props = new ExtendedElement($initialize ? $this->initialProps : []);
         $this->validator = new Validator();
         $this->id = Util::uniqueToken();
     }
@@ -106,12 +106,13 @@ abstract class BaseComponent extends Controller
     }
 
     /**
-     * Fills the component data. This will merge the current data with new parameters.
-     * @param array $params Associative array of parameters with each variable name and value to fill.
+     * Fills the component data. This will merge the current data with new props.
+     * @param array $props Associative array of properties with each variable name and value to fill.
+     * @param bool $invokeTypes (Optional) Set if should cast the types back to the original ones.
      */
-    final public function fillComponentParams(array $params, bool $invokeTypes = false)
+    final public function fillComponentData(array $props, bool $invokeTypes = false)
     {
-        $this->component->set($params, null, false, $invokeTypes);
+        $this->props->set($props, null, false, $invokeTypes);
     }
 
     /**
@@ -120,7 +121,7 @@ abstract class BaseComponent extends Controller
      */
     final public function getComponentData()
     {
-        return $this->component->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES, 512, true);
+        return $this->props->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES, 512, true);
     }
 
     /**
@@ -131,7 +132,7 @@ abstract class BaseComponent extends Controller
         if (empty($this->query)) return;
         foreach ($this->query as $key => $item) {
             if (!is_numeric($key)) $item = $key;
-            if ($this->get->has($item)) $this->component->set($item, $this->get->get($item, ''));
+            if ($this->get->has($item)) $this->props->set($item, $this->get->get($item, ''));
         }
     }
 
@@ -145,10 +146,10 @@ abstract class BaseComponent extends Controller
         $result = [];
         foreach ($this->query as $key => $item) {
             if (is_numeric($key)) {
-                if ($this->component->has($item)) $result[$item] = $this->component->get($item, '');
+                if ($this->props->has($item)) $result[$item] = $this->props->get($item, '');
             } else {
-                if ($this->component->has($key)) {
-                    $val = $this->component->get($key, '');
+                if ($this->props->has($key)) {
+                    $val = $this->props->get($key, '');
                     if (!in_array($val, (array)$item)) $result[$key] = $val;
                 }
             }
@@ -163,7 +164,7 @@ abstract class BaseComponent extends Controller
     final public function magicSet(string $call)
     {
         if (!preg_match('~\$set\(\'(.+)\' *, *\'(.+)\'\)~', $call, $matches)) return;
-        $this->component->set($matches[1], $matches[2]);
+        $this->props->set($matches[1], $matches[2]);
     }
 
     /**
@@ -173,23 +174,23 @@ abstract class BaseComponent extends Controller
     final public function magicToggle(string $call)
     {
         if (!preg_match('~\$toggle\(\'(.+)\'\)~', $call, $matches)) return;
-        if (!filter_var($this->component->get($matches[1], false), FILTER_VALIDATE_BOOLEAN)) {
-            $this->component->set($matches[1], true);
+        if (!filter_var($this->props->get($matches[1], false), FILTER_VALIDATE_BOOLEAN)) {
+            $this->props->set($matches[1], true);
         } else {
-            $this->component->set($matches[1], false);
+            $this->props->set($matches[1], false);
         }
     }
 
     /**
      * Renders the component view.
      * @param string $component Component view filename. Must be a **.phtml** file inside **app/views/components** folder, extension is not needed.
-     * @param array $params (Optional) Parameters to pass into the view. Should be an associative array with each variable name and value.
+     * @param array $props (Optional) Parameters to pass into the component. Should be an associative array with each variable name and value.
      * @param bool $absolute (Optional) Use an absolute path for the view file.
      */
-    final protected function render(string $component, array $params = [], bool $absolute = false)
+    final protected function render(string $component, array $props = [], bool $absolute = false)
     {
-        $this->fillComponentParams($params);
-        $view = new View(!$absolute ? ('components/' . $component) : $component, $this->component->toArray(), false, $absolute);
+        $this->fillComponentData($props);
+        $view = new View(!$absolute ? ('components/' . $component) : $component, $this->props->toArray(), false, $absolute);
         $content = $this->putData($view->getContent());
         echo $content;
     }
@@ -197,13 +198,13 @@ abstract class BaseComponent extends Controller
     /**
      * Renders the component view in a private scope.
      * @param string $component Component view filename. Must be a **.phtml** file inside **app/views/components** folder, extension is not needed.
-     * @param array $params (Optional) Parameters to pass into the view. Should be an associative array with each variable name and value.
+     * @param array $props (Optional) Parameters to pass into the component. Should be an associative array with each variable name and value.
      * @param bool $absolute (Optional) Use an absolute path for the view file.
      */
-    final protected function renderPrivate(string $component, array $params = [], bool $absolute = false)
+    final protected function renderPrivate(string $component, array $props = [], bool $absolute = false)
     {
-        $this->fillComponentParams($params);
-        $view = new View(!$absolute ? ('components/' . $component) : $component, $this->component->toArray(), true, $absolute);
+        $this->fillComponentData($props);
+        $view = new View(!$absolute ? ('components/' . $component) : $component, $this->props->toArray(), true, $absolute);
         $content = $this->putData($view->getContent());
         echo $content;
     }
@@ -219,7 +220,7 @@ abstract class BaseComponent extends Controller
     {
         if (empty($rules)) $rules = $this->rules;
         if (empty($rules)) return true;
-        return $this->validator->validateFields($this->component, $rules, $bail, $bailAll);
+        return $this->validator->validateFields($this->props, $rules, $bail, $bailAll);
     }
 
     /**
@@ -240,7 +241,7 @@ abstract class BaseComponent extends Controller
      */
     final protected function isInvalid(string $key, ?string $rule = null)
     {
-        return $this->validator->hasError($key, $rule);
+        return $this->validator->hasErrors($key, $rule);
     }
 
     /**
@@ -306,7 +307,7 @@ abstract class BaseComponent extends Controller
                 if (count($result) == 1 && !empty($result[0])) $result = $result[0];
 
                 // Sets the result to the component property
-                $this->component->set($input, $result);
+                $this->props->set($input, $result);
             }
         }
     }
@@ -400,7 +401,7 @@ abstract class BaseComponent extends Controller
         // Pumps the content
         $content = preg_replace_callback('~<([^\s]+)(.*)>~', function ($matches) use ($id, $data) {
             return sprintf(
-                '<%s%s r-id="%s" r-data="%s">',
+                '<%s%s r:id="%s" r:data="%s">',
                 $matches[1],
                 $matches[2],
                 $id,

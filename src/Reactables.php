@@ -21,7 +21,7 @@ use Glowie\Plugins\Reactables\Controllers\Main;
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
- * @link https://gabrielsilva.dev.br/glowie/reactables
+ * @link https://glowie.gabrielsilva.dev.br/reactables
  */
 class Reactables extends Plugin
 {
@@ -34,7 +34,7 @@ class Reactables extends Plugin
         // Register the AJAX and assets routes
         Rails::groupRoutes('reactables', function () {
             Rails::addProtectedRoute('update', [ValidateChecksum::class, DispatchMiddlewares::class], Main::class, 'update', 'post', 'reactables-component-route');
-            Rails::addRoute('assets.js', Main::class, 'assets', 'get', 'reactables-assets-route');
+            Rails::addRoute('assets.min.js', Main::class, 'assets', 'get', 'reactables-assets-route');
         }, true);
 
         // Register the Skeltch directives
@@ -82,7 +82,7 @@ class Reactables extends Plugin
 
         // Run create() and fill initial parameters
         if (is_callable([$class, 'create'])) $class->create();
-        $class->fillComponentParams($params);
+        $class->fillComponentData($params);
 
         // Fill query and call make() method
         $class->fillQueryParams();
@@ -94,6 +94,6 @@ class Reactables extends Plugin
      */
     public static function renderAssets()
     {
-        echo '<script src="' . Util::baseUrl('reactables/assets.js') . '"></script>';
+        echo '<script src="' . Util::baseUrl('reactables/assets.min.js') . '"></script>';
     }
 }

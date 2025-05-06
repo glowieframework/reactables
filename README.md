@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://gabrielsilva.dev.br/glowie/reactables" target="_blank"><img src="https://i.imgur.com/prpiWac.png" alt="Reactables" width="250"/></a>
+    <a href="https://glowie.gabrielsilva.dev.br/reactables" target="_blank"><img src="https://i.imgur.com/prpiWac.png" alt="Reactables" width="250"/></a>
 </p>
 
 <p align="center">
@@ -10,7 +10,7 @@
 </p>
 
 ## Glowie dynamic view components plugin
-Reactables is a plugin designed to create dynamic and reactive view components with [Glowie Framework](https://gabrielsilva.dev.br/glowie).
+Reactables is a plugin designed to create dynamic and reactive view components with [Glowie Framework](https://glowie.gabrielsilva.dev.br).
 
 ## Features
 - Create reactive components without Javascript or API calls
@@ -24,7 +24,7 @@ Reactables is a plugin designed to create dynamic and reactive view components w
 - Incredibly lightweight and no performance impacts
 
 ## Documentation
-Documentation is available [in our website](https://gabrielsilva.dev.br/glowie/reactables).
+Documentation is available [in our website](https://glowie.gabrielsilva.dev.br/reactables).
 
 ## Credits
 Reactables and Glowie are currently being developed by [Gabriel Silva](https://gabrielsilva.dev.br).

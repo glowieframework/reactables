@@ -13,7 +13,7 @@ use Glowie\Plugins\Reactables\Reactables;
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
- * @link https://gabrielsilva.dev.br/glowie/reactables
+ * @link https://glowie.gabrielsilva.dev.br/reactables
  */
 class ValidateChecksum extends Middleware
 {

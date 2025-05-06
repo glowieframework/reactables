@@ -11,7 +11,7 @@ use Glowie\Plugins\Reactables\Controllers\BaseComponent;
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
- * @link https://gabrielsilva.dev.br/glowie/reactables
+ * @link https://glowie.gabrielsilva.dev.br/reactables
  */
 class __FIREFLY_TEMPLATE_NAME__ extends BaseComponent
 {
