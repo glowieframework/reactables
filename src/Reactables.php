@@ -39,7 +39,7 @@ class Reactables extends Plugin
 
         // Register the Skeltch directives
         Skeltch::directive('component\s*\((.+?)\)', '<?php \Glowie\Plugins\Reactables\Reactables::renderComponent($1); ?>');
-        Skeltch::directive('reactablesAssets', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets(); ?>');
+        Skeltch::directive('reactables', '<?php \Glowie\Plugins\Reactables\Reactables::renderAssets(); ?>');
 
         // Register the CLI commands
         Firefly::custom('reactables', Create::class);

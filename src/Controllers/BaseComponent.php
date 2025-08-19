@@ -224,24 +224,12 @@ abstract class BaseComponent extends Controller
     }
 
     /**
-     * Returns an associative array with the latest validation errors.
-     * @param string|null $key (Optional) Property name to get errors. Leave blank to get all.
-     * @return array Returns an array with the fetched errors.
+     * Gets the Validator instance associated with the component.
+     * @return Validator The validator instance.
      */
-    final protected function getValidationErrors(?string $key = null)
+    final protected function getValidator()
     {
-        return $this->validator->getErrors($key);
-    }
-
-    /**
-     * Checks if a property is invalid. You must call `$this->validate()` first.
-     * @param string $key Property name to check for validation errors.
-     * @param string|null $rule (Optional) Specific rule to check for errors in the property. Leave blank to check all.
-     * @return bool Returns if the property validation has the specified errors.
-     */
-    final protected function isInvalid(string $key, ?string $rule = null)
-    {
-        return $this->validator->hasErrors($key, $rule);
+        return $this->validator;
     }
 
     /**

@@ -33,10 +33,8 @@ class Main extends Controller
         $class = '\Glowie\Controllers\Components\\' . $name;
         if (!class_exists($class)) throw new ComponentException('Component "' . $name . '" does not exist');
 
-        /** @var BaseComponent */
-        $class = new $class;
-
         // Initialize component data
+        $class = new $class;
         $class->initializeComponent();
         if (!empty($data->id)) $class->setComponentId($data->id);
         if (!empty($data->data)) $class->fillComponentData((array)json_decode($data->data), true);
@@ -74,7 +72,7 @@ class Main extends Controller
         $html = Buffer::get();
 
         // Return response
-        $this->response->setJson([
+        return $this->response->setJson([
             'status' => true,
             'html' => $html,
             'query' => $class->buildQueryString(),
@@ -88,7 +86,7 @@ class Main extends Controller
      */
     public function assets()
     {
-        $this->response->disableCache()
+        return $this->response->disableCache()
             ->setFile(__DIR__ . '/../Assets/dist/reactables.dist.min.js');
     }
 }

@@ -3,7 +3,7 @@
 namespace Glowie\Plugins\Reactables\Controllers;
 
 /**
- * Hasheable interface for Reactables objects.
+ * MutableObject interface for Reactables objects.
  * @category Interface
  * @package glowieframework/reactables
  * @author Glowie
@@ -11,18 +11,19 @@ namespace Glowie\Plugins\Reactables\Controllers;
  * @license MIT
  * @link https://glowie.gabrielsilva.dev.br/reactables
  */
-interface Hasheable
+interface MutableObject
 {
 
     /**
      * Returns the class data to be stored in the JSON object.
      * @return array Should return an associative array with the data you need.
      */
-    public function __serialize(): array;
+    public function mutate();
 
     /**
      * Receives the JSON object stored data back to the class.
      * @param array $data Associative array with the previously serialized data.
+     * @return void
      */
-    public function __unserialize(array $data): void;
+    public function restore(array $data);
 }

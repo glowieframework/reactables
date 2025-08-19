@@ -6,6 +6,7 @@ use Glowie\Core\Element;
 use Glowie\Core\Traits\ElementTrait;
 use Glowie\Core\Collection;
 use DateTime;
+use stdClass;
 use Util;
 
 /**
@@ -25,16 +26,6 @@ class ExtendedElement extends Element
      * @var string
      */
     const PROP_NAME = '$$_objHash';
-
-    /**
-     * Array of other serializable core classes.
-     * @var array
-     */
-    const SERIALIZABLE_CLASSES = [
-        'Glowie\Core\Http\Cookies',
-        'Glowie\Core\Http\Session',
-        'Glowie\Core\Tools\Cache'
-    ];
 
     /**
      * Sets the value for a key in the Element data.
@@ -86,10 +77,12 @@ class ExtendedElement extends Element
         foreach ($data as $key => $value) {
             if ($this->isElementLike($value) || $value instanceof Collection) {
                 $data[$key] = $this->iterateRecursive($value->toArray());
-            } else if ($value instanceof Hasheable) {
-                $data[$key] = $this->iterateRecursive($value->__serialize());
+            } else if ($value instanceof MutableObject) {
+                $data[$key] = $this->iterateRecursive($value->mutate());
             } else if (is_array($value)) {
                 $data[$key] = $this->iterateRecursive($value);
+            } else if ($value instanceof stdClass) {
+                $data[$key] = $this->iterateRecursive((array)$value);
             }
 
             $data[$key] = $this->setPropertyType($value);
@@ -104,15 +97,13 @@ class ExtendedElement extends Element
      */
     private function setPropertyType($value)
     {
-        if ($this->isElementLike($value)) {
-            $value->{self::PROP_NAME} = Util::encryptString(get_class($value));
-        } else if ($value instanceof Collection) {
-            $value[self::PROP_NAME] = Util::encryptString(get_class($value));
-        } else if ($value instanceof Hasheable) {
+        if ($this->isElementLike($value) || $value instanceof Collection) {
+            $value->set(self::PROP_NAME, Util::encryptString(get_class($value)));
+        } else if ($value instanceof MutableObject) {
             $originalObject = $value;
-            $value = $value->__serialize();
+            $value = $value->mutate();
             if (!isset($value[self::PROP_NAME])) $value[self::PROP_NAME] = Util::encryptString(get_class($originalObject));
-        } else if ($value instanceof DateTime) {
+        } else if ($value instanceof DateTime || $value instanceof stdClass) {
             $originalObject = $value;
             $value = (array)$value;
             if (!isset($value[self::PROP_NAME])) $value[self::PROP_NAME] = Util::encryptString(get_class($originalObject));
@@ -128,7 +119,7 @@ class ExtendedElement extends Element
      */
     private function isElementLike($value)
     {
-        return is_object($value) && (Util::usesTrait($value, ElementTrait::class) || in_array(get_class($value), self::SERIALIZABLE_CLASSES));
+        return is_object($value) && Util::usesTrait($value, ElementTrait::class);
     }
 
     /**
@@ -139,9 +130,13 @@ class ExtendedElement extends Element
     private function invokeRecursive($value)
     {
         if (is_object($value)) {
-            foreach ($value as $k => $v) $value->{$k} = $this->invokeRecursive($v);
+            foreach ($value as $k => $v) {
+                $value->{$k} = $this->invokeRecursive($v);
+            }
         } else if (is_array($value)) {
-            foreach ($value as $k => $v) $value[$k] = $this->invokeRecursive($v);
+            foreach ($value as $k => $v) {
+                $value[$k] = $this->invokeRecursive($v);
+            }
         }
 
         return $this->invokePropertyType($value);
@@ -168,8 +163,9 @@ class ExtendedElement extends Element
 
                 // Parse properties
                 if ($this->isElementLike($newValue) || $newValue instanceof Collection) $newValue->set((array)$value);
-                if ($newValue instanceof Hasheable) $newValue->__unserialize((array)$value);
+                if ($newValue instanceof MutableObject) $newValue->restore((array)$value);
                 if ($newValue instanceof DateTime) $newValue = $newValue->__set_state((array)$value);
+                if ($newValue instanceof stdClass) $newValue = (object)$value;
 
                 // Return new instance
                 $value = $newValue;
