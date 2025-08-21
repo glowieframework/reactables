@@ -119,7 +119,7 @@ class ExtendedElement extends Element
      */
     private function isElementLike($value)
     {
-        return is_object($value) && Util::usesTrait($value, ElementTrait::class);
+        return is_object($value) && ($value instanceof Element || Util::usesTrait($value, ElementTrait::class));
     }
 
     /**

@@ -8,7 +8,7 @@ use Glowie\Core\Http\Rails;
 use Glowie\Core\View\Skeltch;
 use Glowie\Core\CLI\Firefly;
 use Glowie\Plugins\Reactables\Commands\Create;
-use Glowie\Plugins\Reactables\Commands\DeleteTempUploads;
+use Glowie\Plugins\Reactables\Commands\ClearUploads;
 use Glowie\Plugins\Reactables\Exception\ComponentException;
 use Glowie\Plugins\Reactables\Middlewares\ValidateChecksum;
 use Glowie\Plugins\Reactables\Middlewares\DispatchMiddlewares;
@@ -27,6 +27,14 @@ class Reactables extends Plugin
 {
 
     /**
+     * Array of files and directories to be published to the app folder.
+     * @var array
+     */
+    protected $files = [
+        __DIR__ . '/Templates/Config.php' => 'config/Reactables.php'
+    ];
+
+    /**
      * Initializes the plugin.
      */
     public function register()
@@ -43,7 +51,7 @@ class Reactables extends Plugin
 
         // Register the CLI commands
         Firefly::custom('reactables', Create::class);
-        Firefly::custom('reactables', DeleteTempUploads::class);
+        Firefly::custom('reactables', ClearUploads::class);
     }
 
     /**

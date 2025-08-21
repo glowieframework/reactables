@@ -76,7 +76,7 @@ class Main extends Controller
                     $class->__magicDispatch($data->params, false, true);
                     break;
                 default:
-                    $class->__callMethod($data->params);
+                    $class->__callMethod($data->method, $data->params);
                     break;
             }
         }

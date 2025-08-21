@@ -50,12 +50,6 @@ abstract class BaseComponent extends Controller
     protected $files = [];
 
     /**
-     * Array of global file upload validation rules.
-     * @var array
-     */
-    protected $uploadRules = ['upload', 'max:15000'];
-
-    /**
      * Array of query string parameters.
      * @var array
      */
@@ -271,6 +265,16 @@ abstract class BaseComponent extends Controller
     }
 
     /**
+     * Checks if a component property is invalid.
+     * @param string|null $key (Optional) Property name to check, leave empty to check all.
+     * @return bool Returns true if the property is invalid, false otherwise.
+     */
+    final protected function isInvalid(?string $key = null)
+    {
+        return $this->validator->hasErrors($key);
+    }
+
+    /**
      * Gets the Validator instance associated with the component.
      * @return Validator The validator instance.
      */
@@ -322,76 +326,34 @@ abstract class BaseComponent extends Controller
                 // Performs the temporary uploads
                 $result = [];
                 foreach ($files as $file) {
+                    // Checks if the upload has errors
                     if (!empty($file->error)) continue;
-                    $target = rtrim(Config::get('reactables.tmp_path', Util::location('storage/reactables')), '/\\');
+
+                    // Checks if the target directory is writable
+                    $target = rtrim(Config::get('reactables.uploads.tmp_path', Util::location('storage/reactables')), '/\\');
                     if (!is_dir($target)) @mkdir($target, 0755, true);
                     if (!is_writable($target)) throw new FileException('Directory "' . $target . '" is invalid or not writable');
 
                     // Validate the file
-                    if (!$this->validator->validate($file->tmp_name, array_merge($this->uploadRules, $rules), true)) continue;
+                    $rules = array_merge(Config::get('reactables.uploads.rules', ['upload', 'max:15000']), $rules);
+                    if (!$this->validator->validate($file->tmp_name, $rules, true)) continue;
 
                     // Upload the file
                     $target = $target . '/' . Util::uniqueToken() . '.tmp';
-                    if (@move_uploaded_file($file->tmp_name, $target)) {
-                        $file->tmp_name = $target;
-                        $result[] = $file;
+                    if (is_uploaded_file($file->tmp_name) && @move_uploaded_file($file->tmp_name, $target)) {
+                        $newFile = new UploadedFile($file->toArray());
+                        $newFile->tmp_name = $target;
+                        $result[] = $newFile;
                     }
                 }
 
-                // Parse the first file only
-                if (count($result) == 1 && !empty($result[0])) $result = $result[0];
+                // Parse the first file only on single upload
+                if (count($result) === 1 && !empty($result[0])) $result = $result[0];
 
                 // Sets the result to the component property
                 $this->props->set($input, $result);
             }
         }
-    }
-
-    /**
-     * Previews an uploaded file.
-     * @param object $file The temporary uploaded file instance.
-     * @return string|bool Returns the preview as a **base64 string** on success, false on errors.
-     */
-    final protected function previewUpload(object $file)
-    {
-        if (!isset($file->tmp_name) || !isset($file->type)) throw new ComponentException('previewUpload(): Not a valid file');
-        $content = @file_get_contents($file->tmp_name);
-        if (!$content) return false;
-        return 'data: ' . $file->type . ';base64,' . base64_encode($content);
-    }
-
-    /**
-     * Stores a temporary uploaded file in a definitive way.
-     * @param object $file The temporary uploaded file instance.
-     * @param string $directory (Optional) Target directory to store the file. Must be an existing directory with write permissions,\
-     * absolute path or relative to the **app/public** folder.
-     * @param string|null $filename (Optional) Custom filename, leave empty to use the original filename. **This overwrites existing files!**
-     * @return string|bool Returns the resulting filename path on success, false on errors.
-     */
-    final protected function storeUpload(object $file, string $directory = 'uploads', ?string $filename = null)
-    {
-        // Validate file
-        if (!isset($file->tmp_name) || !isset($file->name)) throw new ComponentException('storeUpload(): Not a valid file');
-
-        // Checks for target folder
-        $directory = rtrim($directory, '/\\');
-        if (!is_writable($directory)) throw new FileException('Directory "' . $directory . '" is invalid or not writable');
-
-        // Move the temp file to the target folder
-        $target = $directory . '/' . ($filename ?? $file->name);
-        $result = @rename($file->tmp_name, $target);
-        return $result ? $target : false;
-    }
-
-    /**
-     * Discards a temporary uploaded file, deleting it.
-     * @param object $file The temporary uploaded file instance.
-     * @return bool Returns true on success or false on failure.
-     */
-    final protected function discardUpload(object $file)
-    {
-        if (!isset($file->tmp_name)) throw new ComponentException('discardUpload(): Not a valid file');
-        return @unlink($file->tmp_name);
     }
 
     /**

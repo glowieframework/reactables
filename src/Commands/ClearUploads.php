@@ -8,16 +8,16 @@ use Config;
 use Util;
 
 /**
- * Reactables delete temporary uploads Firefly command.
+ * Reactables clear temporary uploads Firefly command.
  * @category Command
- * @example Usage: `reactables:delete-temp-uploads`
+ * @example Usage: `reactables:clear-uploads`
  * @package glowieframework/reactables
  * @author Glowie
  * @copyright Copyright (c) Glowie
  * @license MIT
  * @link https://glowie.gabrielsilva.dev.br/reactables
  */
-class DeleteTempUploads extends Command
+class ClearUploads extends Command
 {
 
     /**
@@ -29,12 +29,14 @@ class DeleteTempUploads extends Command
         $this->print('<bg="yellow"><color="black">Reactables</color></bg> ', false);
 
         // Get temp directory
-        $dir = Config::get('reactables.tmp_path', Util::location('storage/reactables'));
+        $dir = rtrim(Config::get('reactables.uploads.tmp_path', Util::location('storage/reactables')), '/\\');
         if (!is_writable($dir)) throw new FileException('Directory "' . $dir . '" is not writable, please check your chmod settings');
 
         // Delete files
-        if ($this->confirm('<color="yellow">Delete temporary uploads?</color>')) {
-            foreach (Util::getFiles($dir . '/*') as $filename) unlink($filename);
+        if ($this->confirm('<color="yellow">Clear temporary uploads?</color>')) {
+            foreach (Util::getFiles($dir . '/*.tmp') as $filename) {
+                unlink($filename);
+            }
             $this->success("Temporary uploads deleted successfully!");
         }
     }
