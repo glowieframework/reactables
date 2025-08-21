@@ -86,10 +86,22 @@ abstract class BaseComponent extends Controller
     private $events = [];
 
     /**
+     * Array of dispatched global events.
+     * @var array
+     */
+    private $globalEvents = [];
+
+    /**
+     * Array of dispatched browser events.
+     * @var array
+     */
+    private $browserEvents = [];
+
+    /**
      * Initializes the component core.
      * @param bool $initialize (Optional) Initialize with default properties.
      */
-    final public function initializeComponent(bool $initialize = false)
+    public function __initializeComponent(bool $initialize = false)
     {
         $this->props = new ExtendedElement($initialize ? $this->initialProps : []);
         $this->validator = new Validator();
@@ -100,7 +112,7 @@ abstract class BaseComponent extends Controller
      * Sets the component id.
      * @param string $id Component id to set.
      */
-    final public function setComponentId(string $id)
+    public function __setComponentId(string $id)
     {
         $this->id = $id;
     }
@@ -110,7 +122,7 @@ abstract class BaseComponent extends Controller
      * @param array $props Associative array of properties with each variable name and value to fill.
      * @param bool $invokeTypes (Optional) Set if should cast the types back to the original ones.
      */
-    final public function fillComponentData(array $props, bool $invokeTypes = false)
+    public function __fillComponentData(array $props, bool $invokeTypes = false)
     {
         $this->props->set($props, null, false, $invokeTypes);
     }
@@ -119,7 +131,7 @@ abstract class BaseComponent extends Controller
      * Gets the component data as a JSON string object.
      * @return string Returns the component data.
      */
-    final public function getComponentData()
+    public function __getComponentData()
     {
         return $this->props->toJson(JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES, 512, true);
     }
@@ -127,7 +139,7 @@ abstract class BaseComponent extends Controller
     /**
      * Fills the component data using query string parameters.
      */
-    final public function fillQueryParams()
+    public function __fillQueryParams()
     {
         if (empty($this->query)) return;
         foreach ($this->query as $key => $item) {
@@ -140,7 +152,7 @@ abstract class BaseComponent extends Controller
      * Builds the query string parameters.
      * @return string Returns the query string URL.
      */
-    final public function buildQueryString()
+    public function __buildQueryString()
     {
         if (empty($this->query)) return null;
         $result = [];
@@ -159,27 +171,50 @@ abstract class BaseComponent extends Controller
 
     /**
      * Sets magically the value of a property.
-     * @param string $call Method call.
+     * @param array $params Array of parameters. First parameter is the variable name, second the value.
      */
-    final public function magicSet(string $call)
+    public function __magicSet(array $params)
     {
-        if (!preg_match('~\$set\(\'(.+)\' *, *\'(.+)\'\)~', $call, $matches)) return;
-        $this->props->set($matches[1], $matches[2]);
+        if (!isset($params[0])) throw new ComponentException('Missing prop name in "$set" magic method call');
+        $this->props->set($params[0], $params[1] ?? null);
     }
 
     /**
      * Toggles magically the value of a boolean property.
-     * @param string $call Method call.
+     * @param array $params Array of parameters. First parameter is the variable name.
      */
-    final public function magicToggle(string $call)
+    public function __magicToggle(array $params)
     {
-        if (!preg_match('~\$toggle\(\'(.+)\'\)~', $call, $matches)) return;
-        if (!filter_var($this->props->get($matches[1], false), FILTER_VALIDATE_BOOLEAN)) {
-            $this->props->set($matches[1], true);
+        if (!isset($params[0])) throw new ComponentException('Missing prop name in "$toggle" magic method call');
+        if (!filter_var($this->props->get($params[0], false), FILTER_VALIDATE_BOOLEAN)) {
+            $this->props->set($params[0], true);
         } else {
-            $this->props->set($matches[1], false);
+            $this->props->set($params[0], false);
         }
     }
+
+    /**
+     * Dispatches magically an event.
+     * @param array $params Array of parameters. First parameter is the event name, then the other parameters.
+     */
+    public function __magicDispatch(array $params, bool $global = false, bool $browser = false)
+    {
+        if (!isset($params[0])) throw new ComponentException('Missing event name in "$dispatch" magic method call');
+        if ($global) return $this->dispatchGlobal($params[0], array_slice($params, 1));
+        if ($browser) return $this->dispatchBrowser($params[0], array_slice($params, 1));
+        return $this->dispatch($params[0], array_slice($params, 1));
+    }
+
+    /**
+     * Calls a method from the component.
+     * @param string $method Method signature to call.
+     */
+    public function __callMethod(string $method, array $params = [])
+    {
+        if (!is_callable([$this, $method])) throw new ComponentException("Invalid component method call \"$method\"");
+        call_user_func_array([$this, $method], $params);
+    }
+
 
     /**
      * Renders the component view.
@@ -189,10 +224,22 @@ abstract class BaseComponent extends Controller
      */
     final protected function render(string $component, array $props = [], bool $absolute = false)
     {
-        $this->fillComponentData($props);
+        $this->__fillComponentData($props);
         $view = new View(!$absolute ? ('components/' . $component) : $component, $this->props->toArray(), false, $absolute);
         $content = $this->putData($view->getContent());
         echo $content;
+    }
+
+    /**
+     * Renders the component view inline.
+     * @param string $content Component content in HTML.
+     * @param array $props (Optional) Parameters to pass into the component. Should be an associative array with each variable name and value.
+     */
+    final protected function inline(string $content, array $props = [])
+    {
+        $filename = Util::location('storage/cache/' . md5($content) . '.phtml');
+        file_put_contents($filename, $content);
+        $this->render($filename, $props, true);
     }
 
     /**
@@ -203,7 +250,7 @@ abstract class BaseComponent extends Controller
      */
     final protected function renderPrivate(string $component, array $props = [], bool $absolute = false)
     {
-        $this->fillComponentData($props);
+        $this->__fillComponentData($props);
         $view = new View(!$absolute ? ('components/' . $component) : $component, $this->props->toArray(), true, $absolute);
         $content = $this->putData($view->getContent());
         echo $content;
@@ -245,7 +292,7 @@ abstract class BaseComponent extends Controller
      * Returns the redirect target, if any.
      * @return string|null Redirect URL or null.
      */
-    final public function getRedirectTarget()
+    public function __getRedirectTarget()
     {
         return $this->redirectTarget;
     }
@@ -253,7 +300,7 @@ abstract class BaseComponent extends Controller
     /**
      * Handles temporary file uploads.
      */
-    final public function handleUploads()
+    public function __handleUploads()
     {
         // Checks if file models were set
         if (!empty($this->files)) {
@@ -350,13 +397,39 @@ abstract class BaseComponent extends Controller
     /**
      * Dispatches an event in the component.
      * @param string $name Name of the event to dispatch.
-     * @param array $params (Optional) Array of params to pass with the event.
+     * @param array $params (Optional) Associative array of params to pass with the event.
      */
-    final protected function dispatchEvent(string $name, array $params = [])
+    final protected function dispatch(string $name, array $params = [])
     {
         $this->events[] = [
             'name' => $name,
-            'params' => array_values($params)
+            'params' => $params
+        ];
+    }
+
+    /**
+     * Dispatches an event globally.
+     * @param string $name Name of the event to dispatch.
+     * @param array $params (Optional) Associative array of params to pass with the event.
+     */
+    final protected function dispatchGlobal(string $name, array $params = [])
+    {
+        $this->globalEvents[] = [
+            'name' => $name,
+            'params' => $params
+        ];
+    }
+
+    /**
+     * Dispatches an event to the browser.
+     * @param string $name Name of the event to dispatch.
+     * @param array $params (Optional) Associative array of params to pass with the event.
+     */
+    final protected function dispatchBrowser(string $name, array $params = [])
+    {
+        $this->browserEvents[] = [
+            'name' => $name,
+            'params' => $params
         ];
     }
 
@@ -364,9 +437,29 @@ abstract class BaseComponent extends Controller
      * Returns an array of the dispatched events and their params.
      * @return array Array of dispatched events.
      */
-    final public function getDispatchedEvents()
+    public function __getDispatchedEvents()
     {
-        return $this->events;
+        return [
+            'component' => $this->events,
+            'global' => $this->globalEvents,
+            'browser' => $this->browserEvents
+        ];
+    }
+
+    /**
+     * Resets a component prop to its initial value.
+     * @param string|array $key (Optional) The prop name to reset, you can also use an array of prop names. Leave empty to reset all.
+     */
+    final public function resetProps($key = null)
+    {
+        if (is_null($key)) $key = array_keys($this->props->toArray());
+        foreach ((array)$key as $name) {
+            if (isset($this->initialProps[$name])) {
+                $this->props->set($name, $this->initialProps[$name]);
+            } else {
+                $this->props->set($name, null);
+            }
+        }
     }
 
     /**
@@ -380,7 +473,7 @@ abstract class BaseComponent extends Controller
         $id = $this->id;
         $data = [
             'name' => Util::classname($this),
-            'data' => $this->getComponentData(),
+            'data' => $this->__getComponentData(),
             'checksum' => $this->checksum(),
             'route' => Util::encryptString(Rails::getCurrentRoute()),
             'base_url' => Util::baseUrl()

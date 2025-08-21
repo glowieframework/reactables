@@ -35,35 +35,54 @@ class Main extends Controller
 
         // Initialize component data
         $class = new $class;
-        $class->initializeComponent();
-        if (!empty($data->id)) $class->setComponentId($data->id);
-        if (!empty($data->data)) $class->fillComponentData((array)json_decode($data->data), true);
+        $class->__initializeComponent();
+        if (!empty($data->id)) $class->__setComponentId($data->id);
+        if (!empty($data->data)) $class->__fillComponentData(json_decode($data->data, true) ?? [], true);
 
         // Handle uploads
-        if (!empty($_FILES)) $class->handleUploads();
+        if (!empty($_FILES)) $class->__handleUploads();
 
         // Call update method
         if (is_callable([$class, 'update'])) call_user_func([$class, 'update']);
 
         // Check method call
         if (!empty($data->method)) {
-            // Trim string to avoid errors
+            // Trim string and parse params
             $data->method = trim($data->method);
+            if (!empty($data->params)) {
+                $data->params = json_decode($data->params, true) ?? [];
+            } else {
+                $data->params = [];
+            }
 
             // Check magic actions
-            if ($data->method == '$refresh()') {
-                // Do nothing, refresh the component only
-            } else if (Util::startsWith($data->method, '$set(')) {
-                $class->magicSet($data->method);
-            } else if (Util::startsWith($data->method, '$toggle(')) {
-                $class->magicToggle($data->method);
-            } else {
-                eval('$class->' . $data->method . ';');
+            switch ($data->method) {
+                case '$refresh':
+                    //* Do nothing, refresh the component only
+                    break;
+                case '$set':
+                    $class->__magicSet($data->params);
+                    break;
+                case '$toggle':
+                    $class->__magicToggle($data->params);
+                    break;
+                case '$dispatch':
+                    $class->__magicDispatch($data->params);
+                    break;
+                case '$dispatchGlobal':
+                    $class->__magicDispatch($data->params, true);
+                    break;
+                case '$dispatchBrowser':
+                    $class->__magicDispatch($data->params, false, true);
+                    break;
+                default:
+                    $class->__callMethod($data->params);
+                    break;
             }
         }
 
         // Check for redirect instruction
-        $redirect = $class->getRedirectTarget();
+        $redirect = $class->__getRedirectTarget();
         if ($redirect) return $this->response->setJson(['status' => true, 'redirect' => $redirect]);
 
         // Refresh component
@@ -75,9 +94,9 @@ class Main extends Controller
         return $this->response->setJson([
             'status' => true,
             'html' => $html,
-            'query' => $class->buildQueryString(),
-            'data' => $class->getComponentData(),
-            'events' => $class->getDispatchedEvents()
+            'query' => $class->__buildQueryString(),
+            'data' => $class->__getComponentData(),
+            'events' => $class->__getDispatchedEvents()
         ]);
     }
 

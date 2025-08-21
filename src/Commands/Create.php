@@ -42,6 +42,18 @@ class Create extends Command
         if (!is_dir(Util::location('controllers/Components'))) mkdir(Util::location('controllers/Components'), 0755, true);
         if (!is_writable(Util::location('controllers/Components'))) throw new FileException('Directory "app/controllers/Components" is not writable, please check your chmod settings');
 
+        // Create inline component
+        if ($this->hasOption('inline')) {
+            $template = file_get_contents(__DIR__ . '/../Templates/Controller_Inline.php');
+            $template = str_replace('__FIREFLY_TEMPLATE_NAME__', $classname, $template);
+            file_put_contents($controllerFile, $template);
+
+            // Print results and exit
+            $this->success("Component {$classname} created successfully!");
+            $this->info("Controller: {$controllerFile}");
+            return;
+        }
+
         // Creates the controller file
         $template = file_get_contents(__DIR__ . '/../Templates/Controller.php');
         $template = str_replace('__FIREFLY_TEMPLATE_NAME__', $classname, $template);

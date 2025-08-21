@@ -56,7 +56,7 @@ class Reactables extends Plugin
     }
 
     /**
-     * Instructs a full page reload/redirect from `r-navigate` calls.
+     * Instructs a full page reload/redirect from `r:navigate` calls.
      * @param string|null $url (Optional) Target URL. Leave blank to use the current requested URL.
      */
     public static function redirectNavigate(?string $url = null)
@@ -78,14 +78,14 @@ class Reactables extends Plugin
 
         // Create and initialize class
         $class = new $class;
-        $class->initializeComponent(true);
+        $class->__initializeComponent(true);
 
         // Run create() and fill initial parameters
         if (is_callable([$class, 'create'])) $class->create();
-        $class->fillComponentData($params);
+        $class->__fillComponentData($params);
 
         // Fill query and call make() method
-        $class->fillQueryParams();
+        $class->__fillQueryParams();
         $class->make();
     }
 

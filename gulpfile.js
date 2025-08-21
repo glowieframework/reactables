@@ -4,14 +4,19 @@ const terser = require('gulp-terser');
 const watch = require('gulp-watch');
 
 function scripts() {
-  return gulp.src('src/Assets/*.js')
-    .pipe(concat('reactables.dist.min.js'))
-    .pipe(terser())
-    .pipe(gulp.dest('src/Assets/dist'));
+    return gulp.src([
+        'src/Assets/morphdom.js',
+        'src/Assets/reactables.js',
+        'src/Assets/component.js',
+        'src/Assets/init.js',
+    ])
+        .pipe(concat('reactables.dist.min.js'))
+        .pipe(terser())
+        .pipe(gulp.dest('src/Assets/dist'));
 }
 
 function watchFiles() {
-  watch('src/Assets/*.js', {ignoreInitial: false, verbose: true}, scripts);
+    watch('src/Assets/*.js', {ignoreInitial: false, verbose: true}, scripts);
 }
 
 exports.default = gulp.series(scripts);
